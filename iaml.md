@@ -204,3 +204,96 @@ __Naive Bayes structure__
  - Score function: class-conditional likelihood
  - Optimisation: analytic solution
 
+## Lecture 4
+
+Decision trees - try to _understand_ when John plays tennis. Split into sets, are they pure? If not repeat, if yes then done and see which subset new data falls into.
+
+### ID3 Algorithm
+
+ 1. A <- the best attribute for splitting the examples
+ 2. Decision attribute for this node <- A
+ 3. For each value of A, create new child node
+ 4. Split training examples to child nodes
+ 5. If examples perfectly classified then stop else iterate over new child nodes.
+
+### Which attribute to split on?
+
+Want to measure purity of the split so we are more certain after the split. We use entropy:
+
+$$ H(S) = - p_{(+)} log_2 p_{(+)} - p_{(-)} log_2 p_{(-)} $$
+
+ - S: subset of training examples
+ - $p_{(+)}/p_{(-)}$: % of positive/negative examples in S
+
+### Information Gain
+
+We want many items in pure sets and expect drop in entropy after split:
+
+$$ Gain(S, A) = H(S) - \sum_{V \in Values(A)} \frac{|S_V|}{|S|}H(S_V) $$
+
+### Overfitting
+
+We can always classify training examples perfectly - keep splitting until each node has 1 example. Doesn't work on new data.
+
+To avoid this, we stop splitting when not statistically significant. Grow the tree, then post-prune based on a validation set.
+
+__Sub-tree replacement pruning (WF 6.1)__
+
+ - for each node
+      + pretend to remove node + all children
+      + measure performance on validation set
+ - remove node that results in greatest improvement
+ - repeat until harmful
+
+__Structure of DT__
+
+ - Task: classification, discriminative
+ - Model: decision tree
+ - Score function: information gain at each node, prefer short trees and high-gain near root
+ - Optimisation: greedy search from simple to complex guided by information gain
+
+__Problems of DT__
+
+ - Biased towards attributes with many values
+ - Doesn't work on new (un-observed) data
+ - Only axis aligned splits of data
+
+__GainRatio__
+
+Idea is to penalise attributes with many values.
+
+$$ SplitEntropy(S, A) = - \sum_{V \in Values(A)} \frac{|S_V|}{|S|} log \frac{|S_V|}{|S|} $$
+$$ GainRatio(S, A) = \frac{Gain(S, A)}{SplitEntropy(S, A)} $$
+
+Continuous DTs - Create ranges to split on which can be optimised (WF 6.1).
+
+__Multi-class classification__
+
+ - predict most frequent class
+ - Entropy: $H(S) = - \sum_{c} p_{(c)} log_2 p_{(c)}$
+ - $p_{(c)}$ % of examples of class c in S
+
+__Regression__
+
+ - predicted output: mean of the training examples in subset
+ - requires a different definition of entropy (dunno)
+ - can use linear regression at the leaves (WF 6.5)
+
+### Good stuff about DTs
+
+ - interpretable
+ - easily handles irrelevant attributes (Gain = 0)
+ - can handle missing data - (WF 6.1)
+ - very compact # of nodes << d after pruning
+ - very fast at testing time $O(depth)$
+
+### Random decision forest
+
+ - Grow K different decision trees
+      + Pick a random subset S_r of training examples
+      + grow a full ID3 tree T_r (no pruning)
+           * when splitting pick from d << D random attributes
+           * compute gain based on S_r instead of full set
+      + repeat for r = 1 ... K
+ - Given new data point X
+      + classify X using each tree and then use majority vote (state-of-the-art performance)
