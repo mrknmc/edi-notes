@@ -297,3 +297,104 @@ __Regression__
       + repeat for r = 1 ... K
  - Given new data point X
       + classify X using each tree and then use majority vote (state-of-the-art performance)
+
+## Lecture 5
+
+### Over-fitting
+
+ - predictor too complex
+     + fits noise in the training data
+     + patterns will not reappear
+ - predictor F over-fits if:
+     + we can find another predictor F'
+     + which makes more mistakes on the training set
+     + makes less mistakes on the future data
+
+### Under-fitting
+
+ - predictor too simplistic (rigid)
+ - not powerful enough to capture salient patterns in data
+ - we can find another predictor with smaller training and future data errors
+
+### Under/Over-fitting knobs
+
+ - regression: order of polynomial
+ - NB: number of attributes
+ - DT: number of nodes in the tree / pruning confidence
+ - kNN: number of NN
+ - SVM: kernel type, cost parameter
+
+__Training Error__ - average error over all training data.
+
+$$ E_train = \frac{1}{n} \sum_{i=1}^{n} error(f_D(x_i), y_i) $$
+
+__Generalisation Error__ - how well we'll do on future data (can never compute).
+
+$$ E_{gen} = \int error(f_D(x), y) p(y, x) dx $$
+
+### Estimating Generalisation Error
+
+ - set aside part of training set as testing set (unbiased)
+ - predict on testing set - estimate of generalisation error
+
+### Confidence Interval for Future Error
+
+What range of error can we expect for future test sets?
+
+$$ CI = E +- \sqrt{E(1 - E)/n} \times \phi^{-1} \times \frac{1 - p}{2} $$
+
+### Training, validation, testing sets
+
+ - Training set: construct classifier
+ - Validation set: pick algorithm + knob settings
+ - Testing set: estimate future error rate
+
+### Cross-validation
+
+Split dataset into n sets test on each, train on the others. Average the results at the end.
+
+ - best possible classifier learned
+ - high computational cost
+ - classes not balanced in training/testing sets
+
+__Stratification__ - keep classes balanced across training/testing sets. Split each class into K sets and choose one for each validation.
+
+### Classification Error
+
+$$ \frac{FP+FN}{TP+TN+FP+FN} $$
+
+ - true negatives and true positives are good
+ - false negatives and false positives are bad
+
+ - False Alarm Rate = FP / (FP + TN)
+ - Miss Rate = FN / (TP + FN)
+ - Recall = TP / (TP + FN)
+ - Precision = TP / (TP + FP)
+
+Always report at least two, it is trivial to get one to 100% or 0%.
+
+### Utility and Cost
+
+ - $Detection cost = C_{FP} \times FP + C_{FN} \times FN$
+ - $F-measure = \frac{2}{1/Recall + 1/Precision}$
+
+### Receiver Operating Characteristic
+
+ - $False positive rate = P(f(x) > t | ham)$
+ - $True positive rate = P(f(x) > t | spam)$
+
+ROC - Plot TPR vs. FPR from -infinity to infinity. Alternative to classification error.
+
+### Regression error functions
+
+ - (Root) mean squared error
+     + $\sqrt{\frac{1}{n}\sum_{i=1}^{n}(f(x_i) - y_i)^2}$
+     + popular, differentiable but sensitive to single large outliers, mean and scale
+ - Mean absolute error
+     + $\frac{1}{n} \sum_{i=1}^{n} |f(x_i) - y_i|$
+     + less sensitive to outliers, sensitive to mean and scale
+ - Correlation coefficient
+     + $n\sum_{i=1}^{n} \frac{f(x_i) - \mu_f}{\sigma_f} \times \frac{y_i-\mu_y}{\sigma_y}$
+     + insensitive to mean and scale
+     + useful for ranking tasks e.g. recommend a film
+
