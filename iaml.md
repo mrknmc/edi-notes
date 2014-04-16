@@ -398,3 +398,91 @@ ROC - Plot TPR vs. FPR from -infinity to infinity. Alternative to classification
      + insensitive to mean and scale
      + useful for ranking tasks e.g. recommend a film
 
+## Lecture 6
+
+### kNN
+
+ - k = 1
+     + Insensitive to class prior
+     + Very sensitive to outliers
+ - k > 1
+     + k affects smoothness of the boundary
+     + large value: everything classified as most probable class (priors)
+     + small value: highly variable, unstable decision boundaries
+     + set aside portion of data (validation set) and vary k to find ideal
+
+### Distance measures
+
+ - __Euclidian__: symmetric, spherical, all dimensions equal, sensitive to changes in one attribute
+ - __Hamming__: counts number of attributes that differ (logical AND)
+ - __Minkovski__: $D(x, x') = \sqrt[p]{\sum_d |x_d - x'_d|^p}$
+     + p = 2: Euclidean
+     + p = 1: Manhattan
+     + p = 0: Hamming (logical AND)
+     + p = $\infty$: logical OR
+ - __Kullback-Leibler divergence__ - measure of information lost (excess bits to encode x with x')
+     + $D(x, x') = - \sum_d x_d \log{\frac{x_d}{x'_d}}$
+
+### Resolving ties
+
+ - use odd k (when only 2 classes)
+ - random flip of coin
+ - pick class with higher prior
+ - 1NN: use 1st nearest neighbour to decide
+
+__Missing values__ - have to "fill in", otherwise can't compute distance (average)
+
+__Parzen Windows Classifier__ - use constant distance around a point and find dominant class in variable number of examples.
+
+Probabilistically, we could express kNN and Parzen Windows as follows:
+
+$$ P(o|x) = \frac{\sum_i 1_{y_i=o} \times 1_{x_i \in R(x)}}{\sum_i 1_{x_i \in R(x)}} $$
+
+that is, we a point has a vote if it falls into a certain radius R(x).
+
+However, using kernels we can give points weight depending on how far they are:
+
+$$ P(o|x) = \frac{\sum_i 1_{y_i = o} \times K(x_i, x)}{\sum_i K(x_i, x)} $$
+
+### kNN Problems and good stuff
+
+ - almost no assumptions about data
+     + smoothness: nearby regions of space -> same class
+     + assumptions implied by distance function
+     + non-parametric approach (let the data speak for itself)
+         * only parameters to infer are k and distance function
+         * easy to update in online setting
+ - need to handle missing data
+ - sensitive to class outliers (mislabelled instances)
+ - sensitive to irrelevant attributes (distance)
+ - computationally expensive
+     + space: store all training data
+     + time: compute distance to every point $O(nd)$
+     + expensive at testing, not training (bad)
+
+### Making kNN fast
+
+ - reduce dimensionality: feature selection
+ - reduce number of examples to compare to
+     + K-D trees: low-dimensional real-valued data, may miss neighbours
+         * $O(d log n)$
+     + Inverted lists: high-dimensional, discrete data, sparse data
+         * $O(d'n')$ where $d' << d, n' << n$,
+     + Fingerprinting: high-dimensional, sparse or dense, may miss neighbours
+         * $O(dn')$ where $n' << n$ 
+
+__Using K-D__
+
+ - pick random dimension, find median, split data, repeat for all 'children'
+ - find NNs for a point
+     + find region of point
+     + compare point to all points in region
+
+__Using inverted list__
+
+ - list all training examples containing a particular attribute
+ - assumption: most attribute values are zero (sparse)
+ - find NNs for a point
+     + merge inverted lists for attributes present in the point
+     + compare point to all points in the merged list
+
