@@ -670,3 +670,17 @@ __When generative classifiers are linear__
 $$ p(y=k|\mathbf{x}) = \frac{exp(\mathbf{w_k}^T \mathbf{x})}{\sum\limits_{j=1}^{C}exp(\mathbf{w_j}^T \mathbf{x})} $$
 
 Note that $0 \leq p(y=k|\mathbf{x}) \leq 1$ and sum is equal to 1.
+
+
+## Lecture 9
+
+### Support Vector Machines
+
+- one of the most effective and widely used
+- combination of two ideas
+    + maximum margin classification
+        * margin is the distance between decision boundary and closest point
+    + "kernel trick"
+- SVMs are a linear classifier
+
+
