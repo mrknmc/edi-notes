@@ -566,3 +566,107 @@ __Why not use RBF?__
 
  - you might need too many RBFs especially in high dimensions
  - Too many RBFs means we probably over-fit
+
+
+## Lecture 8
+
+### Decision boundary
+
+In a two class linear classifier we learn a function 
+
+$$ F(\mathbf{x}, \mathbf{w}) = \mathbf{w}^T \mathbf{x} + w_0 $$
+
+that represents how aligned the instance is with y = 1.
+
+the instance belongs to class y = 1 if $F(\mathbf{x}, \mathbf{w}) > 0$.
+
+__Two class discrimination__
+
+ - We want a linear probabilistic model
+ - $P(y=1|\mathbf{x}) = \mathbf{w}^T \mathbf{x}$ is not between 0 and 1
+ - Instead we do $P(y=1|\mathbf{x}) = f(\mathbf{w}^T \mathbf{x})$
+ - f must be between 0 and 1
+ - $P(y=0|\mathbf{x}) = 1 - P(y=1|\mathbf{x})$
+
+### Logistic function 
+
+We use the sigmoid function:
+
+$$ f(z) = \sigma(z) = \frac{1}{1 + exp(-z)} $$
+
+Linear weights + logistic squashing function == __logistic regression__
+
+We model the class probabilities as:
+
+$$ P(y=1|\mathbf{x}) = \sigma(\sum\limits_{j=0}^D w_jx_j) = \sigma(\mathbf{w}^T \mathbf{x}) $$
+
+$\sigma(z) = 0.5$ when $z = 0$, thus we use $\mathbf{w}^T \mathbf{x} = 0$ as decision boundary (probability is half).
+
+### Logistic regression
+
+When we exclude $w_0$ from $\mathbf{w}$, the magnitude of that vector represents the certainty of the classifications. For small magnitude, the probabilities within the region of the decision boundary will be near 0.5. For large magnitude it will be nearer 0 or 1.
+
+$w_0$ just shifts the hyper-plane, only the other terms affect the angle.
+
+__Learning logistic regression__
+
+ - Write out the model and the likelihood
+ - Find derivatives of the log likelihood w.r.t. the parameters
+ - Adjust the parameters to maximise the log likelihood
+ - Assume data is independent and identically distributed
+ - Call the data set $D = {(x_1, y_1), \hdots, (x_n, y_n)}$
+
+The likelihood is:
+
+$$ p(D | \mathbf{w}) = \prod\limits_{i=1}^n p(y=y_i | \mathbf{x_i}, \mathbf{w}) $$
+
+we split this into our two classes
+
+$$ p(D | \mathbf{w}) = \prod\limits_{i=1}^n p(y=1 | \mathbf{x_i}, \mathbf{w})^{y_i} (1 - p(y=1 | \mathbf{x_i}, \mathbf{w}))^{1 - y_i} $$
+
+Hence the log likelihood is:
+
+$$ L(\mathbf{w}) = \sum\limits_{i=1}^{n} y_i \log{\sigma(\mathbf{w}^T \mathbf{x_i}) + (1 - y_i)\log{(1-\sigma(\mathbf{w}^T \mathbf{x_i}))}} $$
+
+__To maximise the likelihood__
+
+We take a gradient, differentiate w.r.t. components of w (need to do this numerically, no analytical solution):
+
+$$ \frac{\delta L}{\delta w_j} = \sum\limits_{i=1}^{n} (y_i - \sigma(\mathbf{w}^T \mathbf{x_i})) x_{ij} $$
+
+### Perceptron
+
+Function, simpler than logistic regression:
+
+$$ f(z) = sign(z) = 1 if z > 0, -1 \text{ otherwise} $$
+
+ - repeat for all i in 1, 2, ... n
+ - $y' \leftarrow sign(\mathbf{w}^T x_i)$
+ - if $y' != y_i$ then $\mathbf{w} \leftarrow \mathbf{w} + y_i \mathbf{x_i}$
+ - until all training examples are correctly classified
+
+- if data is linearly separable, the above algorithm always converges to a weight vector that separates the data
+- if the data is not separable, algorithm does not converge, need to choose manually
+
+### Generative and Discriminative Models
+
+ - We did something different than with Naive Bayes
+ - Naive Bayes modelled how a class generated the feature vector p(x|y) - __generative approach__
+     + Good with missing data
+     + Good with detecting outliers
+ - Logistic regression models p(x|y) directly - __discriminative approach__
+     + No need to waste time modelling
+
+__When generative classifiers are linear__
+
+ 1. Gaussian data with equal covariance
+ 2. Binary data where each component is a Bernoulli variable
+
+### Multi-class classification
+
+ - Create a different weight vector $\mathbf{w_k}$ for each class
+ - Then use softmax function
+
+$$ p(y=k|\mathbf{x}) = \frac{exp(\mathbf{w_k}^T \mathbf{x})}{\sum\limits_{j=1}^{C}exp(\mathbf{w_j}^T \mathbf{x})} $$
+
+Note that $0 \leq p(y=k|\mathbf{x}) \leq 1$ and sum is equal to 1.
