@@ -486,3 +486,83 @@ __Using inverted list__
      + merge inverted lists for attributes present in the point
      + compare point to all points in the merged list
 
+
+## Lecture 7
+
+### Linear Regression
+
+The relationship between input and output is linear.
+
+$$ f(\mathbf{x};\mathbf{w}) = w_0 + w_1x_1 + \hdots + w_Dx_D = \mathbf{w}^T \phi (\mathbf{x}) $$
+
+where $\phi(\mathbf{x}) = (1, x_1, \hdots, x_D)^T$.
+
+If $\phi$ is the design matrix (contains all training vectors as rows, prepended by 1), then $\phi \times \mathbf{w}$ is a vector of predicted values on the inputs.
+
+### Model parameters
+
+$$ \mathbf{y} = \phi \times \mathbf{w} $$
+
+We know $\mathbf{y}, \phi \text{ but not } \mathbf{w}$. Can we do $\mathbf{w} = \phi^{-1} \times \mathbf{y}$?
+
+ - $\phi$ is not a square matrix (could be but not good)
+ - system is over-constrained (n equations for D+1 parameters)
+ - data has noise
+
+We want a loss function $O(\mathbf{w})$ that:
+
+ - we minimise w.r.t. $\mathbf{w}$
+ - at minimum looks like $\mathbf{y}$
+
+__Loss function__
+
+ - Squared error: $O(\mathbf{w}) = \sum_{i=1}^{n} (y_i - \mathbf{w}^T\mathbf{x_i})^2$
+     + Residual error: $y_i - \mathbf{w}^T\mathbf{x_i}$
+
+__Fitting a linear model to data__
+
+$$ O(\mathbf{w}) = (\mathbf{y} - \phi \mathbf{w})^T(\mathbf{y} - \phi \mathbf{w}) $$
+
+ - To minimise $O(\mathbf{w})$ set partial derivatives to zero.
+ - Analytical solution is $\mathbf{w} = (\phi^T \phi)^{-1} \phi^T \mathbf{y}$
+     + the phi stuff is a pseudo inverse
+     + analytical solution is exact solution (same thing)
+
+__Probabilistic interpretation of O(w)__
+
+If we assume that $y = \mathbf{w}^T \mathbf{x} + \epsilon$, where $\epsilon = N(0, \sigma^2)$ then this implies that $y|x_i = N(w^Tx_i, \sigma^2)$. After we take a log of this, we get:
+
+$$ - \log{p(y_i|x_i)} = \log{\sqrt{2 \pi}} + \log{\sigma} + \frac{(y_i - \mathbf{w}^T\mathbf{x_i})^2}{2 \sigma^2} $$
+
+The last term is squared error so minimising $O(\mathbf{w})$ is equivalent to maximising likelihood! Squared residual errors allow estimation of:
+
+$$ \sigma^2 = \frac{1}{n} \sum\limits_{i=1}^{n} (y_i - \mathbf{w}^T \mathbf{x_i})^2 $$
+
+Linear regression is sensitive to outliers!
+
+__Multiple regression__ - if there are q different targets (e.g. temperature, humidity based on conditions) then we introduce a different weight for each target dimension and do regression separately.
+
+### Basis expansion
+
+We can use a function $\phi(\mathbf{x})$ to transform our design matrix. This function could be a polynomial, gaussian or sigmoid etc.
+
+__Transforming features__
+
+ - 1 if Intel
+ - 2 if AMD
+ - 3 if Apple
+
+could be transformed into:
+
+ - x_1 = 1 if Intel, 0 otherwise
+ - x_2 = 1 if AMD, 0 otherwise
+ - x_3 = 1 if Apple, 0 otherwise
+
+### Radial basis function (RBF) models
+
+Set $\phi_i(x) = exp(-\frac{1}{2} | \mathbf{x} - \mathbf{c_i}|^2 / \alpha^2)$. $c_i$ tells you where it is centred and $\alpha$ tells you the width. Choosing subset of training set as centres is quite effective.
+
+__Why not use RBF?__
+
+ - you might need too many RBFs especially in high dimensions
+ - Too many RBFs means we probably over-fit
