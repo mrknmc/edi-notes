@@ -681,6 +681,6 @@ Note that $0 \leq p(y=k|\mathbf{x}) \leq 1$ and sum is equal to 1.
     + maximum margin classification
         * margin is the distance between decision boundary and closest point
     + "kernel trick"
-- SVMs are a linear classifier 
+- SVMs are a linear classifier  
 
 

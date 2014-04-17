@@ -8,7 +8,7 @@ TL;DR
 
 ## The Von Neumann Architecture
 
-<!-- image -->
+![](von-neumann.png)
 
 ## Levels of programming languages
 
@@ -71,8 +71,6 @@ A bus is a group of 'wires' shared by several devices. Buses are cheap and versa
 A bus is operated in a master-slave protocol: e.g. to read data from memory, CPU puts address on a bus and asserts 'read'; memory retrieves data, puts data on bus; PC reads from bus. In some cases an initialisation protocol is needed to decide which device is the bus master.
 
 ### Bus Hierarchy
-
-<!-- image -->
 
 ## Interrupts
 
@@ -194,7 +192,7 @@ __Process is a program in execution.__ It may have own view of memory, sees one 
  - __event__: event occurs - wake up process and tell it
  - __release__: process terminates, release resources
 
-<!-- transition image -->
+![](transitions.png)
 
 ### Process Control Block (PCB)
 
@@ -209,8 +207,8 @@ __Process is a program in execution.__ It may have own view of memory, sees one 
 
 Kernel executes:
 
- - Older OSes: single program in real memory
- - Modern OSes: may execute in context of a user process, parts of OSes may be processes (e.g. I/O in Unix and IBM)
+ - __Older OSes__: single program in real memory
+ - __Modern OSes__: may execute in context of a user process, parts of OSes may be processes (e.g. I/O in Unix and IBM)
 
 ## Creating Processes
 
@@ -319,12 +317,12 @@ Happens over several time-scales and at several levels:
 
 ### Criteria for scheduling
 
- -  good utilisation: minimise amount of CPU idle time and job throughput
- -  fairness: all jobs should get a 'fair' share of the CPU
- -  priority: high-priority jobs get larger share
- -  response time: fast response to interactive input
- -  real-time: hard deadlines, e.g. chemical plant control
- -  predictability: avoid wild variations in user-visible performance
+ - __good utilisation__: minimise amount of CPU idle time and job throughput
+ - __fairness__: all jobs should get a 'fair' share of the CPU
+ - __priority__: high-priority jobs get larger share
+ - __response time__: fast response to interactive input
+ - __real-time__: hard deadlines, e.g. chemical plant control
+ - __predictability__: avoid wild variations in user-visible performance
 
 Balance is dependent on the system. On a PC, response time is important. On a main-frame throughput is important.
 
@@ -405,9 +403,9 @@ Allow process to identify _critical sections_ where they have exclusive access t
 
 ### Implementation
 
- - via hardware: special machine instructions
- - via OS support: OS provides primitives to call
- - via software: entirely by user code
+ - __via hardware__: special machine instructions
+ - __via OS support__: OS provides primitives to call
+ - __via software__: entirely by user code
 
 We assume that mutual exclusion exists in hardware, memory access is atomic - only one write/read at a time.
 
@@ -472,8 +470,8 @@ Traditionally, `P` and `V` are used for `wait` and `signal`.
 
 Semaphore could be:
 
- - strong: waiting process are released FIFO; more useful, generally provided
- - weak: no guarantee about the order; not used here
+ - __strong__: waiting process are released FIFO; more useful, generally provided
+ - __weak__: no guarantee about the order; not used here
 
 __Binary semaphore__ - takes on values 0 and 1. `wait` decrements 1 to 0 or blocks if 0 already. `signal` unblocks, or increments from 0 to 1 if no blocked processes.
 
@@ -604,18 +602,18 @@ There are techniques to detect whether a deadlock exists. Then we can:
 
 Each process needs memory for
 
- - code: program itself
- - static data: compiled into program
- - dynamic data: stack, heap
+ - __code__: program itself
+ - __static data__: compiled into program
+ - __dynamic data__: stack, heap
 
 Key requirements
 
- - relocation: moving programs in memory
- - allocation: assigning memory for processes
- - protection: preventing access to other processes' memory
- - sharing: prevent, except for where appropriate
- - logical organisation: how memory is seen by process
- - physical organisation: how memory is arranged in HW
+ - __relocation__: moving programs in memory
+ - __allocation__: assigning memory for processes
+ - __protection__: preventing access to other processes' memory
+ - __sharing__: prevent, except for where appropriate
+ - __logical organisation__: how memory is seen by process
+ - __physical organisation__: how memory is arranged in HW
 
 __Relocation problem__
 
@@ -637,7 +635,7 @@ A segment is a portion of memory starting at an address given in a _base registe
 
 To achieve protection, we can add _limit register_ `L`. OS loads `L` with length of segment `l`. If `x > l` then raise _address fault_ (exception SEGFAULT).
 
-<!-- diagram of segmentation -->
+![](segmentation.png)
 
 ### Partitioning
 
@@ -708,7 +706,7 @@ With paging (or segmentation) each logical memory reference needs two physical m
 
 Modern systems have address space of at least $2^31$ bytes or $2^19$ 4K pages. Modern systems have two or more levels of page table 
 
-<!-- paging diagram -->
+![](paging.png)
 
 ### Sharing Pages
 
@@ -731,13 +729,13 @@ OSes often use frame-address portion of invalid page table entry to keep its loc
 
 Hardware support for VM usually include:
 
- - modified bit: no need to write out page if not changed since last read in
- - reference bit or counter: unreferenced pages are candidates for freeing
+ - __modified bit__: no need to write out page if not changed since last read in
+ - __reference bit or counter__: unreferenced pages are candidates for freeing
 
 Architectures differ on where this happens:
 
- - Intel: modified and reference bits are part of page table entry
- - S/390: they are part of storage key associated with each real frame
+ - __Intel__: modified and reference bits are part of page table entry
+ - __S/390__: they are part of storage key associated with each real frame
 
 ### Combined Paging and Segmentation
 
@@ -768,15 +766,15 @@ Architectures differ on where this happens:
 
 In a virtual memory system, OS needs to decide what to page in and out
 
- - minimise the number of _page faults_: avoid paging out pages that will be needed
- - minimise disk I/O: avoid _reclaiming_ dirty pages
+ - __minimise the number of page faults__: avoid paging out pages that will be needed
+ - __minimise disk I/O__: avoid _reclaiming_ dirty pages
 
 __Fetch Policies__
 
 When should a page be brought into main memory from disk?
 
- - demand paging: when referenced - locality principle suggests this should work well after an initial burst of activity
- - pre-paging: try to bring in pages ahead of demand, exploiting characteristics of disk to improve efficiency
+ - __demand paging__: when referenced - locality principle suggests this should work well after an initial burst of activity
+ - __pre-paging__: try to bring in pages ahead of demand, exploiting characteristics of disk to improve efficiency
      + not shown to be effective
      + used little, if at all
      + few years ago it became a live issue again with a study suggesting it could be useful now
@@ -846,3 +844,345 @@ Actually tracking the working set is expensive. Some approximations:
 
 
 # Input/Output
+
+- dealing with wildly disparate hardware
+- speeds ranging from $10^2$ to $10^9$ bps
+- applications from human communication to storage
+- varying complexity of device interface (e.g. line printer vs. disk)
+- data transfer sizes from 1 byte to megabytes
+- in many representations and encodings
+- giving many idiosyncratic error conditions
+
+## I/O Techniques
+
+ - __direct control__: CPU controls device by reading/writing data directly
+ - __polled I/O__: CPU communicates with hardware via built-in controller
+ - __interrupt-driven I/O__: CPU commands device, gets interrupt on completion
+ - __direct memory access (DMA)__: CPU commands device, which transfers data directly to/from memory (DMA controller separate or on chip)
+ - __I/O channels__: device has specialised processor, interpreting special command set; CPU asks device to execute entire I/O program
+
+### Programmed/Polled I/O
+
+Device has registers accessible via system bus. For output:
+
+ - CPU places data in data register
+ - CPU puts write command in command register
+ - CPU busy-waits reading status register until ready flag is set
+
+Input is the same, except it reads data from a register.
+
+### Interrupt-driven I/O
+
+Interrupt handler is usually split into a device-independent prologue (sometimes called 'interrupt handler') and a device-dependent body (sometimes called 'interrupt service routine'). Prologue saves context, does interrupt de-muxing. Body does device-specific work, e.g. acknowledge interrupt, read data, move it to user space. Body needs to run fast (so next interrupt can be handled) but may need to do complex work - therefore often schedule non-urgent part to run later.
+
+### DMA
+
+A DMA controller accesses memory via a system bus and devices via I/O bus. To use system bus, it _steals cycles_: takes mastery of the bus for a cycle, causing CPU to pause.
+
+CPU communicates (as bus master) with DMA controller via usual bus technique: puts address of memory to be read/written on data lines, address of I/O device on address lines read/write on command lines.
+
+DMA controller then handles transfer between memory and device; interrupts CPU when finished.
+
+Note: DMA interacts with paging! Can't page out a page involved in DMA. Solution: either lock page into memory or copy to buffer in kernel memory and use that instead.
+
+### I/O Channels
+
+IBM mainframe peripherals have sophisticated controllers called 'channels'.
+
+OS builds _channel program_ in main memory and issues `START SUBCHANNEL` instruction. Channel executes entire program before interrupting CPU.
+
+Channels and devices are themselves organised into a complex communication network to achieve maximum performance. IBM mainframe disk drives are more sophisticated than PC disks.
+
+## Taming I/O programming
+
+![](io.png)
+
+Confine device-specific code to small, low-layer and write high-level code in terms of abstract device classes.
+
+Many OSes classify devices into broad classes:
+
+ - __character__: terminals, printers, keyboards, mice (transfer data byte at a time, no storage)
+ - __block__: disk, cd-rom, tape (transfer data in blocks, yes storage)
+ - __network__: ethernet, etc. (mixed characteristics and idiosyncratic control)
+ - __other__: clocks etc.
+
+Unix has a 'everything is a file' philosophy: devices appear as special files. If read/write makes sense, you can do it; device-specific functions available via `ioctl` system call on device file. Somebody still has to write the driver!
+
+## Disk Basics - do you even SSD?
+
+Disks are the main storage medium and their physical characteristics give rise to special considerations.
+
+ - a typical modern disk drive comprises several _platters_, each a thin disk coated with magnetic material
+ - A comb of _heads_ is on a movable arm, with one head per surface
+ - If the heads stay still, they access circles on the spinning platters. One circle is called a _track_; a set of tracks is called a _cylinder_
+ - Often tracks are divided into fixed length _sectors_
+
+To access data in a given sector:
+
+ - move head assembly to the right cylinder (4 ms)
+ - wait for right sector to rotate beneath head (5 ms)
+
+### Disk scheduling
+
+Art of minimising the delays. If I/O requests are handled as they arrive much time is wasted in seek and rotation delays. Because of locality LIFO works quite well; more intelligent scheduling:
+
+ - __shortest-service-time-first (SSTF)__: do request with shortest seek time
+ - __SCAN__: move the head assembly from out to in and back again, servicing requests for each cylinder as it's reached. Avoids starvation; is harmed by locality.
+ - __C-SCAN__: scan in one direction only, then flip back. Avoids bias towards extreme tracks.
+ - __FSCAN, N-step-SCAN__: avoid long delays by servicing only a quota of requests per cylinder (N-step-SCAN) or only those requests arrived before start of current scan (FSCAN).
+
+### RAID
+
+Disks are slow and store critical information. RAID (redundant array of independent disks) is a suite of techniques for improving failure resistance and performance. Basic idea: view several disks as one logical volume.
+
+Levels of RAID
+
+ - __Level 0__: data are striped across n disks. Data is divided into strips; first n logical strips placed in first physical strip of each disk. Thus, n consecutive logical strips can be read in parallel. Choice of strip size depends on application
+     + high transfer rate (small strips -> high parallelism within one request)
+     + high I/O request rate (large strips -> several different requests in parallel)
+ - __Level 1__: data are mirrored (duplicated) on each disk. Protects against disk failure; no overhead, instant recovery
+ - __Level 2__: data are striped in small (byte or word) strips across some disks, with an error checksum (Hamming code) striped across other disks. Overkill - not used.
+ - __Level 3__: same as level 2 but using only parity bits (for error checking) stored on other disk. If one disk fails, data can be read with on-the-fly parity computation; then failed disk can be regenerated. Has write overhead
+ - __Level 4__: large data strips, as for level 0, with extra parity strip on other disk. Write overhead again, bottleneck on parity disk.
+ - __Level 5__: as level 4 but distribute parity strip across disks, avoiding bottleneck
+ - __Level 6__: data striping across n disks, with two different checksums on two other disks (usually one simple parity check, one sophisticated checksum). Designed for every high reliability.
+
+# File Organisation
+
+Unix thinks of a file as an unstructured stream of bytes. Not universally the case. Structural hierarchy often provided at OS level:
+
+ - __field__: basic element of data. May be typed (string, integer etc.). May be of fixed or variable length. Field name may be explicit or implicit in position in record.
+ - __record__: collection of related fields, relating to one entity. May be of fixed or variable length and have fixed or variable fields.
+ - __file__: collection of records forming a single object at OS and user level. Usually has a name and is entered in directories or catalogues. Usual unit of access control.
+ - __database__: collection of related data, often in multiple files, satisfying certain design properties. Usually not at OS level.
+
+## Layers of Access to File Data
+
+As usual, access is split into conceptual layers:
+
+ - device drivers
+ - __physical I/O__: reading/writing blocks on disk
+ - __basic I/O system__: connects file-oriented I/O to physical I/O. Scheduling, buffering etc.
+ - __logical I/O__: presents the application programmer with a uniform view of files and records
+ - __access methods__: provide application programmer with routines for indexed access etc.
+
+## File Organisation
+
+How are records structured within a file? May be application concern only (Unix) or built-in to OS (IBM).
+
+ - __byte stream__: unstructured stream of bytes (only Unix type)
+ - __pile__: unstructured sequence of variable length records. Records and fields need to be self-identifying; can be searched only exhaustively.
+ - __fixed sequential__: sequence of fixed-length records. Can store only value of fields. One field may be _key_. Search is sequential; if records ordered by key, need not be exhaustive (problems in update).
+ - __indexed sequential__: add an _index file_ which indexes key fields position in main file and _overflow file_ for updates. Access much faster; update handled by adding to overflow file. Every so often merge overflow with main file.
+ - __indexed__: drop the sequential ordering; use one exhaustive index plus auxiliary indices
+ - __hashed/direct__: hash key value directly into offset within file. Again use overflow file for updates.
+
+## Directories and Catalogues
+
+How is a file found on disk? OSes often have hierarchical directories:
+
+ - directories list files, including other directories
+ - file is located by path through directory tree
+ - directory entry may contain file meta-data (owner, permissions, access/modification time)
+ - directories can only be accessed via system calls, not by normal I/O user routines
+
+### Unix Files and Directories
+
+ - files are unstructured byte sequences
+ - meta-data (including pointers to data) is stored in an _inode_
+ - directories link names to inodes
+ - file permissions are entirely unrelated to directory permissions
+ - inodes may be listed in multiple directories
+ - inodes (and file data) are automatically freed when no directory links to it
+ - _root directory_ of a file-system is found in a fixed inode (number 2 in Linux)
+
+### OS/390 Data Set Organisation
+
+ - files may have any of the formats mentioned before and others
+ - files live on a disk volume which has a _VTOC_ (Volume Table Of Contents) giving names and some meta-data for files on the disk
+ - files from many volumes can be put in catalogs
+ - _file-name prefix_ can be associated with a catalog via the _master catalog_ E.g. the file `JCB.ASM.SOURCE` will be found in the `JCB` catalog
+ - catalogs also contain additional meta-data (security etc.) depending on files
+ - _master catalog_ is defined at system boot time from the VTOC of the system boot volume
+
+## Access Control
+
+Files are often shared between users. Access may be restricted:
+
+ - knowledge of existence (e.g. seeing directory entry)
+ - execute
+ - read
+ - write
+ - write append-only
+ - change access rights
+ - delete
+
+### Access Control Mechanisms
+
+ - __pre-defined permission bits__: Unix read/write/execute for owner/group/other users
+ - __access control lists__: giving specific rights to specific users or groups
+ - __capabilities__: granted to users over files
+
+## Blocking
+
+How are the _logical records_ packed into physical blocks on a disk?
+
+ - __fixed blocking__: pack constant number of fixed-length records into block (PC, Unix)
+ - __variable, spanning__: variable-length records, packed without regard to block boundaries. Implicit or explicit pointers when spanning blocks may be needed.
+ - __variable, non-spanning__: records don't span blocks; just waste space at end of block
+
+## File Space Allocation
+
+ - __contiguous (one after another) allocation__: makes I/O easy and quick. Fragmentation and need for compaction - may need dynamic compaction.
+ - __chained allocation__: allocate blocks as and when needed and chain them together in one list per file. Easy, no fragmentation problems but file may be scattered over disk - very inefficient and direct access is slow.
+ - __indexed allocation__: file has index of blocks or sequences of blocks allocated to it. E.g. file `foo` is on blocks 3, 4, 5, 78, 79, 80. Most popular method - direct access and sequential access. Avoids fragmentation and has contiguity.
+
+---------------
+__Below is non-examinable__
+
+# Windows NT Family
+
+- Started in 1989 with a new micro-kernel code-base
+- NT3.1 released 1993: poor quality
+- NT3.5 released in 1994: more or less usable
+- NT4.0 released in 1996: matched 1995 look and feel; some functions (e.g. graphics) put back into kernel
+- Windows 2000 (NT 5.0): adds features for distributed processing
+- Windows XP: no significant OS-side changes. Terminal servers allow multiple users on one workstation.
+- Windows Vista: still NT but many components re-worked. ML based paging and security focus.
+- Windows 7: trying to cut down on kernel bloat. Changes to memory management and scheduling.
+
+## NT Design Principles
+
+ - portability: not just Intel
+ - security: for commercial and military use
+ - POSIX compliance: to ease transition from Unix
+ - SMP support
+ - extensibility
+ - internationalisation and localisation
+ - backwards compatibility
+
+## Hal, Kernel, Executive, Subsystems
+
+__Hardware Abstraction Layer (HAL)__ converts all hardware-specific details into abstract interface.
+
+The __(micro)kernel__ handles process and thread scheduling, interrupt/exception handling, SMP synchronisation and recovery. It is object-oriented, non-pageable and non-preemptible.
+
+The __executive__ comprises a number of modules, running in kernel mode but in thread context (Linux kernel threads).
+
+__Subsystems__ are user-mode processes providing native NT facilities to other operating system APIs: Win32, POSIX, OS/2, Win3.1, MS-DOS.
+
+## Processes and Threads
+
+NT has processes that own resources, including an address space and threads that are dis-patchable units as in the general description earlier.
+
+Process/thread services are provided by executive's _process manager_. General purpose, no built-in restrictions to parent/child relationships.
+
+Scheduling is priority-based, processes returning from I/O get boosted and then decay each quantum (20 ms). Special hacks for GUI response.
+
+## Memory Management
+
+NT has paged virtual memory. Page reclamation is local to process. RSS is managed according to global demand.
+
+The executive _virtual memory manager_ provides VM services to processes such as sharing and memory-mapped files.
+
+In Vista, the system tries to pre-load pages that are likely to be needed again.
+
+## Object Management
+
+Almost everything is an object. The executive _object manager_ provides:
+
+ - hierarchical name-space for named objects
+ - access control lists
+ - naming domains: mapping existing name-spaces to object name-space
+ - symbolic links
+ - _handles_ to objects
+
+## I/O Management
+
+The executive _I/O Manager_ supervises dispatching of basic I/O:
+
+ - asynchronous request/response model: application queues a request, is signalled on completion
+ - device drivers and file system drivers can be stacked
+ - cache manager provides general caching services
+ - network drivers include distributed system support
+
+NT supports FAT32 as well as NT file-systems
+
+ - NTFS volume occupies a partition, a disk or multiple disks
+ - NTFS file is structured: it has attributes
+ - files located via MFT (master file table)
+ - NTFS is a journalling (technique to prevent corruption) system
+
+# z/OS - OS/390 - MVS
+
+MVS is the basic OS component of z/OS. MVS comprises of BCP (Basic Control Program) and JES2 (Job Entry Subsystem).
+
+## MVS Design Objectives
+
+ - performance
+ - reliability
+ - availability
+ - compatibility
+
+The system recovers from and reconfigures round, almost all failures, including hardware failures.
+
+## MVS Components
+
+ - __supervisor__: main OS functions
+ - __Master Scheduler__: system start and control, communication with operator, master task in the system
+ - __Job Entry Subsystem (JES2)__: entry of batch jobs, handling of output
+ - __System Management Facility (SMF)__: accounting, performance analysis
+ - __Resource Management Facility__: records data about system events and usage for use by SMF and others
+ - __Workload Manager__: manages workload according to installation goals
+ - __Time-sharing Option (TSO/E)__: provides interactive time-sharing services
+ - __TCAM, VTAM, TCP/IP__: telecoms and networking
+ - __Global Resource Serialization__: resource control clusters
+
+## Supervisor
+
+ - __Dispatcher__: main scheduler
+ - __Real Storage Manager__: manages real memory, decides on page in/out determines RSS
+ - __Auxiliary Storage Manager__: handles page/swap in/out
+ - __Virtual Storage Manager__: address space management and virtual allocation
+ - __System Resources Manager__: supervisor component of workload manager
+
+## Job Entry Subsystem (JES2)
+
+ - read from 'card reader' or TSO `SUBMIT` command
+ - convert JCL to internal form
+ - start execution
+ - spool output; hold for later inspection and/or print
+
+JES2 is basic, JES3 has more advanced features.
+
+## Address spaces
+
+ - __nucleus__: important control blocks, most OS routines
+ - __Fixed Link Pack Area__: non-pageable shared libraries etc.
+ - __private area__: includes address-space-local system data and user programs and data
+ - __Common Service Area__: data shared between all tasks
+ - __System Queue Area__: page tables etc.
+ - __Pageable Link Pack Area__: shared libraries permanently resident in virtual memory
+
+Note that, unlike Linux, most system data is mapped into all address spaces. Address spaces are created for each task (operator `START` command), job and TSO user.
+
+## Recap of other aspects
+
+ - Memory is paged on demand with a 2-level paging system
+ - Task is the basic dispatchable unit. One address space may have many tasks. The service request is a small unit, dispatchable to any address space.
+ - There is a general resource control mechanism `ENQ/DEQ`.
+ - SMP is supported in hardware.
+ - I/O is sophisticated, offloaded from CPU - fast as hell.
+
+## Virtual Machine OS
+
+S/390 is easy to virtualise.
+
+ - VM provides each user with a configurable virtual S/390 machine with full access.
+ - VM control program gives each user a virtual console with operator-like commands.
+ - Users may start CMS (Conversational Monitor System) a single-user OS for interactive work.
+ - Users may load a S/390 OS: MVS, Linux/390 or even VM (inception)
+ - VM is fully paging virtual memory OS
+ - IBM OSes can be adjusted to allow communication with VM _hypervisor_ so only one OS does the paging etc.
+
+A single S/390 machine can reasonably host 10-20 thousand VMs.
