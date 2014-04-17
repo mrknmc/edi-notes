@@ -392,3 +392,214 @@ Requirements for RT systems:
  - __reliability__: systems must fail softly, no panicking, ideally no fails
 
 ## Concurrency
+
+Control access to a shared variable: protect each read-write sequence by a _lock_ which ensures _mutual exclusion_.
+
+### Mutual Exclusion
+
+Allow process to identify _critical sections_ where they have exclusive access to a resource.
+
+Requirements:
+
+ - mutual exclusion must be enforced
+ - processes blocking in non-critical section must not interfere with others
+ - processes wishing to enter critical section must eventually be allowed to do so
+ - entry to critical section should not be delayed without a cause
+ - there can be no assumptions about speed or number of processors
+
+Implementation: 
+
+ - via hardware: special machine instructions
+ - via OS support: OS provides primitives to call
+ - via software: entirely by user code
+
+We assume that mutual exclusion exists in hardware, memory access is atomic - only one write/read at a time.
+
+__Dead lock__ - both processes loop forever waiting for the other to finish.
+
+__Live lock__ - both processes run in exact synchrony and keep deferring to each other.
+
+### Mutex - Dekker's algorithm
+
+Ensure that one process has priority, so will not defer and give other process priority after performing own critical section.
+
+~~~c
+/* using j instead of i hat */
+flag[i] = true;
+while (flag[j]) {
+    if (turn == j) {
+        flag[i] = false;
+        while (turn == j) {}
+        flag[i] = true;
+    }
+}
+/* critical section */
+turn = j;
+flag[i] = false;
+~~~
+
+### Mutex - Peterson's algorithm
+
+Peterson found a more simple and elegant algorithm.
+
+~~~c
+/* using j instead of i hat */
+flag[i] = true;
+turn = j;
+while (flag[j] && turn == j) {}
+/* critical section */
+flag[i] = false;
+~~~
+
+### Mutex - Using hardware support
+
+ - Uniprocessor: mutex achieved by disabling processes from being interrupted. Used extensively in many OSes. Forbidden to user programs.
+ - SMP systems: special instruction, e.g. IBM has `TEST AND SET` which reads a bit of memory and then sets it to 1, atomically. Easy mutex, have a variable `token` and process grabs `token` using test-and-set:
+
+    ~~~c
+    while (test-and-set(token) == 1) {}
+    /* critical section */
+    token = 0;
+    ~~~
+   
+    This is still busy-waiting, deadlock is possible and if low priority grabs the token, high priority pre-empts and can wait forever.
+
+### Semaphores
+
+A semaphore is a special (integer) variable which can be accessed only by the following operations:
+
+ - `init(s, n)`: create semaphore and initialise it to non-negative value `n`
+ - `wait(s)`: semaphore value decremented; if value negative calling process is blocked
+ - `signal(s)`: semaphore is incremented; if value non-positive one process blocked on `wait` is unblocked.
+
+Traditionally, `P` and `V` are used for `wait` and `signal`.
+
+Semaphore could be:
+
+ - strong: waiting process are released FIFO; more useful, generally provided
+ - weak: no guarantee about the order; not used here
+
+__Binary semaphore__ - takes on values 0 and 1. `wait` decrements 1 to 0 or blocks if 0 already. `signal` unblocks, or increments from 0 to 1 if no blocked processes.
+
+Advantage of semaphores - The mutex problem are confined inside just two system calls. User programs do not need to busy-wait; only the OS busy-waits (for a short time).
+
+Using semaphores
+
+~~~c
+wait(s);
+/* critical section */
+signal(s);
+~~~
+
+When semaphore is initialised to `m` instead of `1` then `m` processes run at the same time.
+
+### The Producer-Consumer problem
+
+A _producer_ repeatedly puts items into a buffer and a _consumer_ takes them out. The problem is to make this work without delaying either party. Solution using two semaphores `init(n, 0)` (tracks number of items in buffer) and `init(s, 1)` (used to lock the buffer):
+
+__Producer loop__
+
+~~~c
+datum = produce();
+wait(s); // wait until can add to buffer
+/* critical section */
+append(buffer, datum);
+signal(s); // done with buffer
+signal(n); // added another item to be consumed
+~~~
+
+__Consumer loop__
+
+~~~c
+wait(n); // wait for items in buffer
+wait(s); // wait until can extract from buffer
+/* critical section */
+datum = extract(buffer);
+signal(s); // done with buffer
+consume(datum);
+~~~
+
+### Monitor
+
+Semaphores have `wait` and `signal` separated in code - hard to understand. A _monitor_ is an object which provides some methods (protected by mutex) so only one process can be 'in the monitor' at a time. Monitor variables are only accessible from monitor methods.
+
+ - `cwait(c)`: where `c` is a _condition variable_ confined to monitor; process is suspended and the monitor released for another process.
+ - `csignal(c)`: some process suspended on `c` is released and takes the monitor.
+
+Unlike semaphores, `csignal` does nothing if no process is waiting.
+
+__Advantage of monitors__ - monitors enforce mutex and all the synchronisation is inside the monitor methods where it's easier to find and check.
+
+### The Readers/Writers Problem
+
+Resource which can be read by many processes at one but any read must block a write. It can be written by only one process at once, blocking everything else. Can be solved using semaphores. Who has priority?
+
+ - Unix file locks
+ - OS/390 ENQ syscall provides general purpose read/write locks
+ - Linux kernel uses read/write semaphores internally
+
+### Message Passing
+
+Many systems provide message passing services. Processes may `send` and `receive` messages from each other. `send` and `receive` may be blocking or non-blocking when there is no receiver waiting or no message to receive. Most usual is non-blocking `send` and blocking `receive`.
+
+Can be used for mutex and synchronisation:
+
+ - simple mutex by using a single message as a _token_
+ - producer/consumer: producer sends data as messages to consumer; consumer sends null messages to acknowledge them
+
+### Deadlock
+
+Permanent blocking of two or more processes in a situation where each holds a resource the other needs but will not release it until after obtaining the other's resource.
+
+Process P
+
+~~~c
+acquire(A);
+acquire(B);
+release(A);
+release(B);
+~~~
+
+Process Q
+
+~~~c
+acquire(B);
+acquire(A);
+release(B);
+release(A);
+~~~
+
+Another instance is when two processes are each waiting for the other to send a message.
+
+__Preventing a deadlock__
+
+3 facts need to be true for deadlock to happen
+
+ - resources are held by only one process at a time
+ - a resource can be held while waiting for another
+ - processes do not unwillingly lose resources
+
+If any of these does not hold, deadlock does not happen. If they are true, deadlock may happen if
+
+ - a circular dependency arises between resource requests
+
+The first three can be prevented from holding but not practically. The fourth can be prevented by ordering resources and requiring processes to acquire resources in increasing order.
+
+__Avoiding a deadlock__
+
+A more refined approach is to deny resource requests that might lead to a deadlock. This requires processes to declare in advance the maximum resource they might need. Then, when a process requests a resource, _analyse_ whether granting the request might result in a deadlock.
+
+The analysis is done as follows: if we grant the request, is there sufficient resource to allow one process to run to completion? And when it finishes can we run another? And so on.. If not, we should deny the request.
+
+__Deadlock detection__
+
+There are techniques to detect whether a deadlock exists. Then we can:
+
+ - kill all deadlocked processes
+ - selectively kill deadlocked processes
+ - forcibly remove resources from some processes
+ - if checkpoint-restart is available, roll back to pre-deadlock point and hope it doesn't happen again
+
+## Memory Management
+
+ 
