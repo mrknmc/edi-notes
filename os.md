@@ -1,18 +1,16 @@
-# OS notes
 
-
-## History of computers
+# History of computers
 
 TL;DR
 
-## Computer Architecture
+# Computer Architecture
 
 
-### The Von Neumann Architecture
+## The Von Neumann Architecture
 
 <!-- image -->
 
-### Levels of programming languages
+## Levels of programming languages
 
  1. Executable File ("Machine code")
  2. Object File linked with other Object Files ("Libraries") into 1.
@@ -22,7 +20,7 @@ TL;DR
 
 This is analogous to operation of the computer.
 
-### Layered Virtual Machines
+## Layered Virtual Machines
 
 Think of a virtual machine in each layer built on the lower VM; machine in one level understands language of that level
 
@@ -33,7 +31,7 @@ Think of a virtual machine in each layer built on the lower VM; machine in one l
  4. Compiled Language Level
  5. Meta-Language Level
 
-### Registers
+## Registers
 
  - Very fast on-chip memory
  - Typically 32 or 64 bits
@@ -42,7 +40,7 @@ Think of a virtual machine in each layer built on the lower VM; machine in one l
  - Registers may not be visible to the programmer
  - Most processors have _data_ and _control_ (special meaning to CPU) registers
 
-### Memory Hierarchy
+## Memory Hierarchy
 
  1. CPU
  2. Cache
@@ -53,7 +51,7 @@ Think of a virtual machine in each layer built on the lower VM; machine in one l
      i. I/O devices usually connected via a bus
      ii. very slow and cheap
 
-### Fetch-Execute Cycle
+## Fetch-Execute Cycle
 
 PC initialised to fixed value on CPU reset. Then repeat until halt:
 
@@ -62,7 +60,7 @@ PC initialised to fixed value on CPU reset. Then repeat until halt:
  3. Execution Unit _executes_ the instruction
  4. PC is updated either explicitly by a jump or implicitly
 
-### Buses
+## Buses
 
 A bus is a group of 'wires' shared by several devices. Buses are cheap and versatile but can become a bottleneck on performance. A bus typically has:
 
@@ -76,21 +74,19 @@ A bus is operated in a master-slave protocol: e.g. to read data from memory, CPU
 
 <!-- image -->
 
-### Interrupts
+## Interrupts
 
 There are devices much slower than the CPU. We can't have CPU wait for these devices. Also, external events may occur.
 
 Interrupts provide a suitable mechanism. Interrupt is a signal line into CPU. When asserted, CPU jumps to a particular location (e.g. on x86 on interrupt the CPU jumps to address stored in relevant entry of table pointed to by IDTR control register). The jump saves state; when the interrupt handler finishes, it uses a special return instruction to restore control to original program.
 
-### Direct Memory Access
+## Direct Memory Access
 
 DMA means allowing devices to write directly (via a bus) into main memory, e.g. CPU tells device 'write next block of data into address x' and gets an interrupt when done.
 
 PCs have a basic DMA; IBM main-frames have I/O channels which are a sophisticated extension to DMA.
 
-## Operating System function
-
-### What is an Operating System for?
+# Operating System function
 
  - handles relations between CPU, memory and devices
  - handles allocation of memory
@@ -100,7 +96,7 @@ PCs have a basic DMA; IBM main-frames have I/O channels which are a sophisticate
 
 __Kernel__ - single (logical) program that is loaded at boot time and has primary control of the computer
 
-### Early batch systems
+## Early batch systems
 
 In the beginning, OS simply transferred programs from punch cards into memory. Operator had to set up entire job, programmatically.
 
@@ -115,7 +111,7 @@ Protecting the monitor from the users, which should not be able to:
  - __privileged instructions__: directly access I/O or certain other machine functions
  - __interrupts__: delay the monitor's response to external events
 
-### Multiprogramming
+## Multiprogramming
 
 Jobs would waste 75% CPU cycles waiting on I/O. _Multiprogramming_ was introduced to tackle this. Monitor loaded several user programs when one is waiting for I/O, run another.
 
@@ -156,7 +152,7 @@ Virtual memory allows user's memory to be isolated from kernel memory and other 
  - The virtual memory mechanism can be extended with permission bits; frames can then be shared
  - Combination of all of the above may be used
 
-### OS Structure 
+## OS Structure 
 
 - __Traditional (Monolithic)__ 
     + All OS functions sit in the kernel a single function can crash the whole system
@@ -172,7 +168,7 @@ Modern OSes are hybrid:
  - Linux is monolithic but has (un)loadable modules
  - Windows started micro-kernel but for performance changed
 
-## Processes
+# Processes
 
 __Process is a program in execution.__ It may have own view of memory, sees one processor although it's sharing it with other processes - __virtual processor__. To switch between processes we need to track:
 
@@ -181,7 +177,7 @@ __Process is a program in execution.__ It may have own view of memory, sees one 
  - PC
  - state
 
-### Process States
+## Process States
 
  - __New__: process being created
  - __Running__: process being executed on CPU
@@ -209,14 +205,14 @@ __Process is a program in execution.__ It may have own view of memory, sees one 
  - scheduling and memory management info
  - list of open files, name of executable, owner, CPU time used so far, devices
 
-### Kernel Context
+## Kernel Context
 
 Kernel executes:
 
  - Older OSes: single program in real memory
  - Modern OSes: may execute in context of a user process, parts of OSes may be processes (e.g. I/O in Unix and IBM)
 
-### Creating Processes
+## Creating Processes
 
  - By the OS when a job is submitted or a user logs on
  - By the OS to perform background service for a user (e.g. printing)
@@ -232,7 +228,7 @@ When a process is created, OS must:
  - WinNT, IBM: load program
  - Unix: make child process copy of parent (on write)
 
-### Ending Processes
+## Ending Processes
 
  - Terminate voluntarily (e.g. exit())
  - Perform illegal operation
@@ -248,7 +244,7 @@ On termination, OS must:
  - unlink PCB from OS data structures
  - reclaim all user and kernel memory
 
-### Threads
+## Threads
 
 Processes
 
@@ -287,7 +283,7 @@ __Disadvantages__
  - if thread makes blocking system call, entire process is blocked (there are ways around this)
  - user-space threads don't execute concurrently on multi-processor systems
  
-## Multi-processing
+# Multi-processing
 
 Several processors used together
 
@@ -298,14 +294,14 @@ Several processors used together
 
 Within MIMD, processors could be _loosely coupled_ (e.g. network of PCs with communication links) or _tightly coupled_ (e.g. processors connected via a single bus).
 
-### Symmetric Multi-processing (SMP)
+## Symmetric Multi-processing (SMP)
 
 Where does the OS run when multiple processors?
 
  - __master-slave__: kernel runs on one CPU, and dispatches processes to others. All I/O is done by request on kernel CPU. Easy but inefficient and failure prone.
  - __symmetric__: the kernel executes on any CPU. Kernel may be multi-process or multi-threaded. Each processor may have its own scheduler. More flexible and efficient - more complex.
 
-__SMP OS design considerations__
+### SMP OS design considerations
 
  - __cache coherence__: several CPUs, one shared memory. Each CPU has its own cache. Usually solved by hardware designers.
  - __re-entrancy__: several CPUs may call kernel simultaneously. Kernel code must be written to handle this.
@@ -313,7 +309,7 @@ __SMP OS design considerations__
  - __memory__: must maintain virtual memory consistency between processors.
  - __fault tolerance__: single CPU failure should not influence others.
 
-### Scheduling
+## Scheduling
 
 Happens over several time-scales and at several levels:
 
@@ -321,7 +317,7 @@ Happens over several time-scales and at several levels:
  - __medium-term__: some OSes _suspend_ or _swap out_ processes to ameliorate resource contention
  - __process scheduling (short-term)__: which process gets CPU next, how long
 
-__Criteria for scheduling__
+### Criteria for scheduling
 
  -  good utilisation: minimise amount of CPU idle time and job throughput
  -  fairness: all jobs should get a 'fair' share of the CPU
@@ -391,15 +387,15 @@ Requirements for RT systems:
  - __user control__: hardness of deadlines and priorities is a matter for user
  - __reliability__: systems must fail softly, no panicking, ideally no fails
 
-## Concurrency
+# Concurrency
 
 Control access to a shared variable: protect each read-write sequence by a _lock_ which ensures _mutual exclusion_.
 
-### Mutual Exclusion
+## Mutual Exclusion
 
 Allow process to identify _critical sections_ where they have exclusive access to a resource.
 
-Requirements:
+### Requirements
 
  - mutual exclusion must be enforced
  - processes blocking in non-critical section must not interfere with others
@@ -407,7 +403,7 @@ Requirements:
  - entry to critical section should not be delayed without a cause
  - there can be no assumptions about speed or number of processors
 
-Implementation: 
+### Implementation
 
  - via hardware: special machine instructions
  - via OS support: OS provides primitives to call
@@ -464,7 +460,7 @@ flag[i] = false;
    
     This is still busy-waiting, deadlock is possible and if low priority grabs the token, high priority pre-empts and can wait forever.
 
-### Semaphores
+## Semaphores
 
 A semaphore is a special (integer) variable which can be accessed only by the following operations:
 
@@ -481,9 +477,11 @@ Semaphore could be:
 
 __Binary semaphore__ - takes on values 0 and 1. `wait` decrements 1 to 0 or blocks if 0 already. `signal` unblocks, or increments from 0 to 1 if no blocked processes.
 
-Advantage of semaphores - The mutex problem are confined inside just two system calls. User programs do not need to busy-wait; only the OS busy-waits (for a short time).
+### Advantage of semaphores
 
-Using semaphores
+The mutex problem is confined inside just two system calls. User programs do not need to busy-wait; only the OS busy-waits (for a short time).
+
+### Using semaphores
 
 ~~~c
 wait(s);
@@ -519,7 +517,7 @@ signal(s); // done with buffer
 consume(datum);
 ~~~
 
-### Monitor
+## Monitor
 
 Semaphores have `wait` and `signal` separated in code - hard to understand. A _monitor_ is an object which provides some methods (protected by mutex) so only one process can be 'in the monitor' at a time. Monitor variables are only accessible from monitor methods.
 
@@ -528,7 +526,9 @@ Semaphores have `wait` and `signal` separated in code - hard to understand. A _m
 
 Unlike semaphores, `csignal` does nothing if no process is waiting.
 
-__Advantage of monitors__ - monitors enforce mutex and all the synchronisation is inside the monitor methods where it's easier to find and check.
+### Advantage of monitors
+
+Monitors enforce mutex and all the synchronisation is inside the monitor methods where it's easier to find and check.
 
 ### The Readers/Writers Problem
 
@@ -538,7 +538,7 @@ Resource which can be read by many processes at one but any read must block a wr
  - OS/390 ENQ syscall provides general purpose read/write locks
  - Linux kernel uses read/write semaphores internally
 
-### Message Passing
+## Message Passing
 
 Many systems provide message passing services. Processes may `send` and `receive` messages from each other. `send` and `receive` may be blocking or non-blocking when there is no receiver waiting or no message to receive. Most usual is non-blocking `send` and blocking `receive`.
 
@@ -547,7 +547,7 @@ Can be used for mutex and synchronisation:
  - simple mutex by using a single message as a _token_
  - producer/consumer: producer sends data as messages to consumer; consumer sends null messages to acknowledge them
 
-### Deadlock
+## Deadlock
 
 Permanent blocking of two or more processes in a situation where each holds a resource the other needs but will not release it until after obtaining the other's resource.
 
@@ -571,7 +571,7 @@ release(A);
 
 Another instance is when two processes are each waiting for the other to send a message.
 
-__Preventing a deadlock__
+### Preventing a deadlock
 
 3 facts need to be true for deadlock to happen
 
@@ -585,13 +585,13 @@ If any of these does not hold, deadlock does not happen. If they are true, deadl
 
 The first three can be prevented from holding but not practically. The fourth can be prevented by ordering resources and requiring processes to acquire resources in increasing order.
 
-__Avoiding a deadlock__
+### Avoiding a deadlock
 
 A more refined approach is to deny resource requests that might lead to a deadlock. This requires processes to declare in advance the maximum resource they might need. Then, when a process requests a resource, _analyse_ whether granting the request might result in a deadlock.
 
 The analysis is done as follows: if we grant the request, is there sufficient resource to allow one process to run to completion? And when it finishes can we run another? And so on.. If not, we should deny the request.
 
-__Deadlock detection__
+### Deadlock detection
 
 There are techniques to detect whether a deadlock exists. Then we can:
 
@@ -600,6 +600,249 @@ There are techniques to detect whether a deadlock exists. Then we can:
  - forcibly remove resources from some processes
  - if checkpoint-restart is available, roll back to pre-deadlock point and hope it doesn't happen again
 
-## Memory Management
+# Memory Management
 
- 
+Each process needs memory for
+
+ - code: program itself
+ - static data: compiled into program
+ - dynamic data: stack, heap
+
+Key requirements
+
+ - relocation: moving programs in memory
+ - allocation: assigning memory for processes
+ - protection: preventing access to other processes' memory
+ - sharing: prevent, except for where appropriate
+ - logical organisation: how memory is seen by process
+ - physical organisation: how memory is arranged in HW
+
+__Relocation problem__
+
+When we load contents of a static variable into a register where is variable in memory? When branch, where branch?
+
+Compiler can tag all memory references and make them relative to start of program. Then _relocating header_ loads program at location `X` and adds `X` to all memory addresses in the program. Expensive and what if program swapped out and brought in elsewhere.
+
+We could provide hardware instructions that access memory relative to a _base register_ and have programmer use these. Program then sets base register but nothing else. E.g. in S/390 a typical instruction is:
+
+~~~
+L R13, 568(R12)
+~~~
+
+which loads register 13 with value in address contained in register 12 offset by 568. This could be done by hardware and OS instead of the programmer.
+
+## Segmentation
+
+A segment is a portion of memory starting at an address given in a _base register_ `B`. The OS loads a value `b` into `B`. When the program refers to a memory address `x`, hardware transparently translates it into `x + b`.
+
+To achieve protection, we can add _limit register_ `L`. OS loads `L` with length of segment `l`. If `x > l` then raise _address fault_ (exception SEGFAULT).
+
+<!-- diagram of segmentation -->
+
+### Partitioning
+
+Segmentation allows programs to be put into any available chunk of memory. How do we partition memory between various processes?
+
+ - __fixed partitioning__: divide memory into fixed chunks. Disadvantage: small process in large chunk is wasteful
+ - __dynamic partitioning__: load process into a suitable chunk; when exits, free chunk and merge with neighbouring free chunks. Disadvantage: _(external) fragmentation_ - memory tends to get split into small chunks. May need to _swap out_ running process to make room for higher priority new process. How do we choose chunks?
+     + first fit: choose first big enough chunk (generally best)
+     + next fit: choose first big enough chunk after last allocated chunk (fragments more)
+     + best fit: choose chunk with least waste (fragments a lot)
+
+### Partitioning - The Buddy System
+
+Compromise between static and dynamic.
+
+ - Memory is maintained as a binary tree of blocks of size $2^k$ for $L \leq k \leq U$ suitable lower and upper bounds
+ - When process of size $s$, $2^{i-1} < s \leq 2^i$ comes in, look for free block of size $2^i$. If none, find (recursively) block of size $2^{i+1}$ and split it in two.
+ - When blocks are freed, merge free sibling nodes ("buddies") to re-create bigger blocks.
+
+Variants on the buddy system are still used, e.g. in allocating memory within the Linux kernel.
+
+### Multiple Segments
+
+We can extend segmentation to have multiple segments for a program:
+
+ - hardware/OS provide different segments for different types of data e.g. code, static data and dynamic data.
+ - hardware/OS provides multiple segments at user request
+     + logical memory address viewed as a pair `(s, o)`
+     + process has _segment table_: look up entry `s` in table to get base and limit by b and l
+     + translate as normal to `o + b` or raise fault if `o + b > l`
+
+### Advantages of Segmentation
+
+ - may correspond to user view of memory
+ - protection can be done per segment, each segment can be protected agains, e.g. read, write, execute
+ - sharing of code/data easy but it is better to have a single list of segment descriptors and have process segment tables point into that than to duplicate info between processes
+
+### Disadvantages of Segmentation
+
+ - variable size segments lead to external fragmentation, again
+ - may need to _compact_ memory due to fragmentation
+ - small segments tend to minimise fragmentation but annoy the programmer
+
+## Paging
+
+Small segments reduce fragmentation; variable size segments introduce problems.
+
+__Paging__ - have many small fixed-size segments always provided (invisibly) to the programmer.
+
+Virtual storage is divided in _pages_ of fixed size (typically 4KB). Each _page_ is mapped to a _frame_ of real storage by means of a _page table_.
+
+ - __Page__: virtual memory unit
+ - __Frame__: real memory unit
+ - __Page table__: translates pages to frames
+     + includes _valid bit_ since not all pages may have frames
+     + start and length of a page table are held in control registers like in segmentation
+     + may include _protection bit(s)_ in page table entry for read, write, execute
+
+### Translation Lookaside Buffer (TLB)
+
+With paging (or segmentation) each logical memory reference needs two physical memory references. A TLB is a special associative cache for keeping recently used paging information - it maps pages into frames, bypassing the page table. Like all caches, TLB has coherency problem:
+
+ - when process context-switches, active page table changes must flush TLB
+ - when page is freed must invalidate entry in TLB
+ - changes in protection bits must also invalidate TLB entry
+
+### Multi-level Paging
+
+Modern systems have address space of at least $2^31$ bytes or $2^19$ 4K pages. Modern systems have two or more levels of page table 
+
+<!-- paging diagram -->
+
+### Sharing Pages
+
+Memory can be shared by having different pages map to the same frame. For code we need re-entrant code (not self-modifying). Otherwise, use copy on write:
+
+ - mark the pages as read-only in each process (using protection bits)
+ - when process writes, generate protection exception
+ - OS handles exception by allocating new frame, copying shared frame, and updating process's page table
+
+### Virtual Memory
+
+Pages don't have to be in real memory all the time. Store them on disk when not needed!
+
+ - initialise process's page table with invalid entries
+ - on first reference to page, get exception: handle it, allocate frame, update page table entry
+ - when real memory gets tight, choose some pages, write them to disk, invalidate them and free frames for use elsewhere
+ - when process refers to page on disk, get exception: handle by reading from disk (if necessary paging out some other page)
+
+OSes often use frame-address portion of invalid page table entry to keep its location on disk.
+
+Hardware support for VM usually include:
+
+ - modified bit: no need to write out page if not changed since last read in
+ - reference bit or counter: unreferenced pages are candidates for freeing
+
+Architectures differ on where this happens:
+
+ - Intel: modified and reference bits are part of page table entry
+ - S/390: they are part of storage key associated with each real frame
+
+### Combined Paging and Segmentation
+
+ - S/390
+     + Intertwined, can be seen as 2-level paging system
+     + Logical address is 31 bits
+     + First 11 bits index into current segment table
+     + Next 8 bits index into page table
+     + Remaining bits are offset
+
+    Page tables can be paged out, by marking their entries invalid in the segment table (one segment table per process).
+
+ - Intel
+     + Full-blown segmentation and independent paging
+     + Logical address is 16-bit segment id and 32-bit offset
+     + Segment id portion of logical address is found via a segment register which is usually implicit in access type (`CS` for instruction, `DS` for data, `SS` for stack, `ES` for string data) but can be specified to be in any of six segment registers
+     + Segment registers are part of task context
+     + There may be single global segment table but also task-specific tables
+
+    The result of segment translation is 32-bit linear address which completely independently goes through a 2-level paging system.
+
+    + Segment related info (e.g. segment tables) can be paged out; so can 2nd-level page tables
+    + There is no link between pages and segments: segments don't need to lie on page boundaries
+    + Pages can be 4KB or 4MB
+    + Page table register is part of task context, stored in task segment.
+
+### Paging Policies
+
+In a virtual memory system, OS needs to decide what to page in and out
+
+ - minimise the number of _page faults_: avoid paging out pages that will be needed
+ - minimise disk I/O: avoid _reclaiming_ dirty pages
+
+__Fetch Policies__
+
+When should a page be brought into main memory from disk?
+
+ - demand paging: when referenced - locality principle suggests this should work well after an initial burst of activity
+ - pre-paging: try to bring in pages ahead of demand, exploiting characteristics of disk to improve efficiency
+     + not shown to be effective
+     + used little, if at all
+     + few years ago it became a live issue again with a study suggesting it could be useful now
+
+__Replacement Policy__
+
+When memory runs out and a page is brought in, who do we throw out? Aim: page out the page with the longest time until next reference.
+
+- LRU: choose the page with the longest time since last reference. This is almost optimal - high overhead.
+- FIFO: simple but pages out heavily-used pages
+- clock policy: attempts to get some of the performance of LRU without the overhead
+     + Makes use of the _accessed bit_
+     + Put frames in a circular list 0, ..., `n` - 1 with index `i`
+     + When looking for a page replace, do
+
+        ~~~
+        increment i;
+        while (frame i used) {
+            clear use bit on frame i;
+            increment i;
+        }
+        return i;
+        ~~~
+
+     + Doesn't choose a page unless it has been unreferenced for one complete pass through storage. Performs reasonably well, 25% worse than LRU.
+     + Enhancement to reduce I/O: scan only unmodified frames, without clearing use bit. If this fails, scan modified frames, clearing use bit. If this fails, start from beginning.
+
+### Page Caching
+
+Many OSes use the clock policy with caches and buffers:
+
+ - When a page is replaced, it's added to the end of the _free page list_ if clear, or the `modified page list` if dirty.
+ - The actual frame used for the paged-in page is the head of the free page list.
+ - If no free pages, or when modified list gets beyond certain size, write out modified pages and move to free list.
+
+This means that:
+
+ - pages in the cache can be instantly restored if referenced again
+ - I/O is batched and therefore more efficient
+
+Linux allows you to tune various parameters of the paging caches. It also has a background kernel thread that handles actual I/O this 'trickles out' pages to keep a certain amount of memory free most of the time, to make allocation fast.
+
+### Resident Set Management
+
+In the previous schemes, when a process _page faults_, some other process's page may be thrown out. Alternatively, we could have a _resident set_ for each process.
+
+ - allocate a certain number of frames to each process
+ - after a process reaches its allocation, if a page faults, choose some page of that process to reclaim
+ - re-evaluate resident set size (RSS) from time to time
+
+__How to choose RSS__
+
+The working set of a process over time $\Delta$ is the set of pages referenced in the last $\Delta$ time units. aim to keep the working set in memory. Working sets tend to be stable for some time (locality) and change to a new stable set every so often (inter-locality transitions).
+
+Actually tracking the working set is expensive. Some approximations:
+
+ - __page fault frequency__: choose threshold frequency `f`. On page fault:
+     + if virtual time since last fault is < 1/`f`, add one page to RSS
+     + otherwise, discard unreferenced pages and shrink RSS; clear use bits on other pages
+     + works quite well but poor performance in inter-locality transitions
+ - __variable-interval sampled working set__: at intervals,
+     + evaluate working set (clear use bits at start, check at end)
+     + make this the initial resident set for next interval
+     + add any faulted-in pages (shrink RSS between intervals)
+     + the interval is every `Q` page faults subject to lower and upper time bounds `L` and `U`
+     + Tune `Q`, `L` and `U` according to experience
+
+
+# Input/Output
