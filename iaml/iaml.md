@@ -684,3 +684,268 @@ Note that $0 \leq p(y=k|\mathbf{x}) \leq 1$ and sum is equal to 1.
 - SVMs are a linear classifier  
 
 
+## Lecture 10 - Regularisation
+
+
+## Lecture 11 - SVM again
+
+
+## Lecture 12 K-Means
+
+### Types based on goal
+
+ - monothetic: cluster members have some common property, e.g. all aged 20-35
+ - polythetic: cluster members are similar to each other
+
+### Types based on overlap
+
+ - hard clustering: clusters do not overlap
+ - soft clustering: clusters may overlap
+
+### The other one
+
+ - flat: set of groups
+ - hierarchical: taxonomy
+
+### Methods
+
+- K-D Trees: monothetic, hard boundaries, hierarchical
+- K-means: polythetic, hard boundaries, flat
+- Gaussian mixtures: polythetic, soft boundaries, flat
+- Agglomerative: polythetic, hard boundaries, hierarchical
+
+### K-Means
+
+ 1. Input K, set of points
+ 2. Place centroids at random locations
+ 3. Repeat until convergence:
+     i. for each point find nearest centroid and assign to cluster
+     ii. for each cluster move to mean
+ 4. Stop when none of the cluster assignments change
+
+__Dimensionality reduction__
+
+ - replace representation of each data point with its cluster number
+ - assumes all pertinent qualities reflected in cluster membership
+ - related to basis/kernels
+
+__Properties__ 
+
+ - minimises aggregate intra-cluster distance (same as variance for Euclidean)
+ - converges to a local minimum, not optimal
+ - nearby points may not end up in the same cluster
+
+__Picking K__
+
+ - class labels may suggest it
+ - optimise distance for when the difference in it is maximal, i.e. no big increases afterwards
+
+### Evaluating Clustering Algorithms
+
+ - Extrinsic: help us solve another problem
+     + represent images with cluster features
+     + train different classifier for each sub-population
+     + identify and remove outliers/corrupted points
+ - Intrinsic: useful in and of itself
+     + helps understands the makeup of the data
+     + clusters correspond to classes
+     + compare to human judgements
+
+__Intrinsic Evaluation 1__
+
+ - system produces clusters
+ - we have reference classes
+ - align them and measure accuracy (with max overlap)
+ - if many clusters for one class - greedy algorithm (alternative too slow)
+
+__Intrinsic Evaluation__
+
+- get samples from clusters and ask human if they belong together
+- system produces clusters
+- count errors, compute accuracy, F1, etc.
+
+__Application__
+
+- group all feature vectors from all images into K clusters
+- provides a cluster id for every patch in every image - similar patches, same id
+- then represent patch with cluster id and convert to bag-of-words
+
+## Lecture 13 - Mixture Models
+
+ - probabilistic way of doing soft clustering
+ - each cluster: a generative model
+ - parameters are unknown
+
+### Expectation Maximization
+
+Automatically discover all parameters for the K sources.
+
+ - Start with two randomly placed Gaussians
+ - for each point compute likelihood and readjust Gaussians to fit
+ - iterate until convergence
+
+### Choosing K
+
+ - probabilistic model: maximise likelihood
+ - maybe k = n?
+ - split into training and validation
+
+
+## Lecture 14 - Dimensionality Reduction
+
+__Observed dimensionality__ - sometimes we have dimensions for many events which may all be caused by one event.
+
+__Curse of dimensionality__ - we have many possible instances but most of them will never happen
+
+### Dealing with high dimensionality
+
+ - Use domain knowledge
+ - Make assumptions about dimensions
+     + independence: count along each d separately
+     + smoothness: propagate class counts to neighbouring regions
+     + symmetry: invariance to order of dimensions
+ - Reduce dimensionality: new set of dimensions
+
+### Dimensionality Reduction
+
+ - try to preserve as much structure as possible
+ - only structure that affects class separability
+ - construct new set of dimensions from original with (linear) combinations
+
+### PCA
+
+ - defines a set of principal components
+     + 1st: direction if the greatest variability in data
+     + 2nd: perpendicular to second, greatest variability of what's left
+ - First m << d components become m new dimensions
+
+__Why greatest variability?__
+
+ - reduces cases when two points are close in new dimension but far in previous
+ - minimises distances between original points and their projections
+
+### Principal components
+
+ - center the data at zero (subtract mean from each attribute)
+ - compute covariance matrix $\Sigma$
+     + do $x_1$ and $x_2$ increase together or not
+ - multiply a vector by $\Sigma$
+     + turns towards direction of variance
+ - we want vectors which aren't turned (eigenvectors)
+
+__Principal components__ - eigenvectors with largest eigenvalues
+
+__Finding Principal Components__
+
+ - find eigenvalues by solving: $det(\Sigma - \lambda I) = 0$
+ - find i-th eigenvector by solving $\Sigma \mathbf{e_i} = \lambda_i \mathbf{e_i}$ (unit vector)
+
+__How many dimensions__
+
+ - have d eigenvectors
+ - pick the ones that explain most variance (90%)
+ - or use scree plot like K-means
+
+__Projecting instances to new dimensions__
+
+ - center the instance (subtract mean)
+ - project to new dimension $(\mathbf{x}-\mu)^T\mathbf{e}_j$
+
+### PCA in a nutshell
+
+ 1. center the points
+ 2. compute covariance matrix $cov(h, u) = \frac{1}{n}\sum\limits_{i=1}^{n} h_i u_i$
+ 3. get eigenvectors + eigenvalues
+ 4. pick m < d eigenvectors with highest eigenvalues
+ 5. project data points to those eigenvectors
+
+PCA is unsupervised
+
+ - maximises overall variance of the data along a small set of directions
+ - doesn't know anything about class labels
+ - can pick direction that makes it hard to separate classes
+ - look for a dimension that makes it easy to separate classes
+
+### LDA
+
+Pick a new dimension that gives
+
+ - maximum separation between means of projected classes
+ - minimum variance within each projected class
+
+Pick eigenvectors based on between-class and within-class covariance matrices
+
+LDA is not guaranteed to be better for classification than PCA:
+
+ - it assumes classes are unimodal Gaussians
+ - fails when discriminatory informations is not in the mean but the variance
+
+__Problems with Dimensionality Reduction__
+
+ - expensive
+ - disastrous for tasks with fine-grained classes
+ - understand assumptions behind the method
+
+__Good Stuff__
+
+ - reflects intuition about the data
+ - allows estimating probabilities in high-dimensional data
+ - dramatic reduction in size
+
+
+## Lecture 15 - Hierarchical Clustering
+
+Hard to choose K for clustering. Instead find a hierarchy or structure.
+
+ - top levels: coarse effects, low levels: fine-grained
+     + topmost cluster contains all
+     + bottom most contains singletons
+ - strategies:
+     + top-down: start with all items in one cluster, split recursively
+     + bottom-up: start with singletons, merge by some criterion
+
+### Hierarchical K-Means
+
+ - Top-down approach
+     + run K-means on original data
+     + for each cluster recursively run
+ - fast: recursive calls operate on a slice
+ - greedy: can't cross boundaries imposed by top levels
+     + nearby points may end up in different clusters
+
+### Agglomerative Clustering
+
+ - Ensure nearby points end up in the same clusters
+ - Start with C singleton clusters
+     + each cluster has one data point
+ - Repeat until only one cluster left
+     + find a pair of clusters that is closest
+     + merge them
+     + remove them and add merger
+ - Produces a dendrogram: hierarchical tree of clusters
+ - Need to define a distance metric over clusters
+ - Slow!
+
+__Cluster distance measures__
+
+ - Single link $D(c_1, c_2) = min \text{ } D(c_1, c_2)$
+     + distance between closest elements in clusters
+     + produces long chains
+ - Complete link $D(c_1, c_2) = max \text{ } D(x_1, x_2)$ where $x_1 \in c_1$
+     + distance between farthest elements in clusters
+     + forces spherical clusters with consistent diameter
+ - Average link
+     + average all pairwise distances
+     + less affected by outliers
+ - Centroids
+     + distance between centroids (means) of two clusters
+ - Ward's method
+     + consider joining two clusters, how does it change the total distance from centroids?
+
+__Lance-Williams Algorithm__
+
+ - choose pair of closest clusters
+ - merge them, delete the original
+ - for each remaining cluster k:
+
+    $$ D_{k, i+j} = \alpha_i D_{k,i} + \alpha_j D_{k,j} + \beta D_{i,j} + \gamma |D_{k,i} - D_{k,i}|$$
