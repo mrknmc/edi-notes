@@ -162,5 +162,166 @@ Software as a Service
      + Multi-pass sort (in memory and on disk), combiners run
      + Final merge pass goes into the reducer
 
+## MapReduce Algorithms
 
+### Scaling up vs out
+
+ - small cluster of SMP machines vs large cluster of commodity hardware
+ - intra-node latencies ~ 100ns
+ - inter-node latencies ~ 100micros
+
+### Optimising Computation
+
+ - Sort order of intermediate keys
+ - Control which reducer processes which keys
+ - Preserve state in mappers and reducers (local aggregation) => lower communication
+
+### Combiner Design
+
+ - Combiners and reducers have same method signature
+ - Combiners and mappers should write same value types
+
+### Large Counting Problems
+
+ - We want to emit bigrams
+ - Let mappers create partial counts and reducers aggregate them
+ - Two designs:
+     + Pairs: Emit ((a, b), 1) for every pair of co-occuring words
+         * Easy to implement but lot of shuffling and sorting
+     + Stripes: Emit (a, [(b, 1), (c, 1), ...])
+         * Far less sorting and shuffling
+         * Better use of combiners
+         * Limited in memory size
+
+## Replication
+
+ - To continue working even if a fault occurs
+ - To improve performance:
+     + Load sharing
+     + Nearer location for data access
+ - Remote sites working when local fail
+ - Protection against data correction
+ 
+### Requirements
+
+  - Transparency: clients see logical objects not physical, each access return single object
+  - Consistency: All replicas are consistent for some condition
+
+### Synchronisation Models
+
+ - Non-explicit models:
+     + Strict: All processes must see shared accesses in absolute time order
+     + Linearisability: All processes must see shared accesses in the same order; accesses are ordered according to global timestamp
+     + Sequential: All processes must see shared accesses in the same order; timestamps don't matter
+     + Causal: All processes must see causally-related shared accesses in the same order
+     + Fifo: All processes see writes from each other in order they were used; different processes may not always be seen in that order
+
+ - Explicit models:
+     + Weak: Shared data is consistent only after synchronisation
+     + Release: Shared data is made consistent when a critical region is exited
+     + Entry: Shared data pertaining to a critical region is made consistent when a critical region is entered
+
+### Eventual Consistency
+
+ - Sacrifice global consistency, keep local consistency
+ - Read access => no problem
+ - Infrequent writes => ok as long as same client same replica
+
+### Fault Tolerance
+
+ - Availability: System is ready to be used immediately
+ - Reliability: System is always up
+ - Safety: Faillures are never catastrophic
+ - Maintainability: All failures can be fixed without noticing
+
+### Failure Models
+
+ - Crash: A node halts, but is working correctly before
+ - Omission: A node fails to respond to requests
+ - Timing: A node's response lies outside specified time interval
+ - Response: A node's response is incorrect
+ - Arbitrary: A server produces arbitrary responses at arbitrary times
+
+### Solutions
+
+ - Information redundancy: Error detection and recovery (hardware level)
+ - Temporal redundancy: start operation and if it does not complete start it again (transactions required)
+ - Physical redundancy: add extra software and hardware, have multiple instances
+
+### Issues associated with fault tolerance
+
+ - Process resilience: replicate processes into groups; agreement within a group?
+ - Reliable client/server communication: masking crashes and omissions
+ - Reliable group communication: processes coming/leaving the group
+ - Distributed commit: performed by all members or none at all
+ - Recovery strategies: recovering from an error
+
+### Byzantine fault tolerance
+
+ - Solution only if number of messages is more than 3 times the number of messages that were lost.
+
+### Recovery
+
+ - Backward recovery (more common): return system to some previous correct state
+     + Continually take snapshots of the system
+     + When to delete snapshots?
+ - Forward recovery: bring system to correct state and continue
+     + Account for all errors upfront => have strategy
+
+## Virtualisation
+
+ - Technique to separate hardware, OS, and applications
+
+### CPU and Architecture Virtualisation
+
+ - User ISA and system ISA
+ - ISA virtualisation, instruction interpretation, trap and emulate, binary translation, and hybrids
+ - Virtualisation needs to translate guest state into host state as well as transformations that advance state
+
+### User ISA
+
+ - Application state: Virtual memory, registers
+
+### System ISA
+
+ - The inner rings: 0 (and maybe 1)
+ - Control registers of the CPU 
+ - System clock
+ - Memory management unit: page table, TLB
+ - Device I/O
+ - Virtualisation monitor (hypervisor)
+     + Monitor supervises the guest and virtualises calls to the System ISA
+     + Whenever the guest wants to access System API, the monitor takes over
+     + Shares address space with address space it virtualises
+     + It handles page faults
+
+### Virtualisation Types
+
+ - Trap and emulate: execute normal instructions, trap privileged instructions and emulate running them
+     + Could be ran in host kernel/extension level
+ - Binary translation:
+     + Compile programs to intermediate representation (Java, llvm)
+     + Transform instructions on the fly
+     + Separate model for host and guest accesses
+ - Hybrid models: kernel is binary translated, user code is trapped and emulated
+
+### Further Virtualisation
+
+ - We can emulate CPU & memory but I/O devices as well
+     + Uniformity: Remote hard drive or RAID
+     + Isolation: Devices operate as if they were alone
+     + Performance: Lower level entities optimise I/O path
+     + Multiplexing: Parallelise processes (e.g. replication)
+     + System Evolution: Connecting new drive while system is alive
+ - Three main techniques:
+     + Direct Access
+         * No changes to guest but specialised hardware for host
+         * Hardware interface needs to be visible to guest
+     + Device Emulation
+         * Drivers are in monitor or host, no special hardware
+     + Paravirtualisation
+         * Expose monitor and allow guest to make monitor calls
+         * Implement guest-specific drivers (one each)
+
+## NoSQL
 
