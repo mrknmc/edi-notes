@@ -325,3 +325,303 @@ Software as a Service
 
 ## NoSQL
 
+ - State unlikely to fit on a single machine, must be distributed
+ - Three core ideas:
+     + Partitioning (sharding): Scalability and latency
+     + Replication: Availability and throughput
+     + Caching: latency
+
+### RDBMS
+
+ - Relational mdoel
+ - Transactional semantics: ACID
+ - Multiple machines => Distributed protocol: Two-phase commit
+     + Coordinator sends prepare, subordinates reply with OK or no
+     + If one subordinate replies no, coordinator sends aborts
+     + If all OK then coordinator sends commit
+     + All subordinates reply with ack
+     + If onen subordinate doesn't reply, coordinator sends rollback
+ - 2PC needs a write-ahead-log and persistent storage at every node
+ - 2PC is blocking, slow, and if coordinator dies => problem
+
+### NoSQL
+
+ - Scale simple operations horizontally
+ - Weaker model than ACID
+ - Flexible schemas and replicated over many servers
+
+### Key-value Stores
+
+ - Keys are usually primitives (hashable)
+ - Values can also be complex
+ - API: Get, Put (usually atomic)
+ - Can be persistent or non-persistent
+
+### Dealing with Scale
+
+ - Partition key space across many machines
+ - Store key `k` as follows: `hash(k) mod n`
+ - We need to also hash the machines so we know who to contact
+
+### Chord
+
+ - Distributed hash table (DHT) arranged in a ring
+ - Every machine has a successor and a predecessor $O(n)$
+ - Every machine can have a _finger table_ (+2, +4, ...) $O(log n)$
+
+### Google BigTable
+
+ - Distributed, sparse, persistent, multi-dimensional sorted map
+ - Map indexed by row, column and a timestamp => unique key
+ - Support lookups, inserts, deletes
+ - Single row transactions only
+ - Rows are maintained in sorted order
+ - Row ranges grouped into _tablets_
+ - Columns grouped into families with `family:qualifier` as id
+ - Uses GFS, Chubby (master file), and SSTables
+
+#### SSTable
+
+ - Basic building block of Bigtable
+ - Group of blocks + index stored in GFS (can be mapped to memory)
+ - Supports key lookup or iteration
+
+#### Tablets
+
+ - Partitioned range or rows
+ - Built from multiple SSTables
+ - One SSTable can be in more tablets
+
+#### Architecture
+
+ - One master server, many tablet servers
+ - Master assigns tablets to servers
+     + Detects addition and expiration of servers
+     + Balances tablet server load
+     + Handles garbage collection and schema evolution
+     + Table merging, creation, deletion
+ - Tablet servers manage a set of tablets and handles reads and writes
+     + Each tablet belongs to one server at a time
+     + Table splitting when become too big
+
+### CAP Tradeoffs
+
+ - CA = consistency and availability (parallel databases with 2PC)
+ - AP = availability and partition tolerance (DNS, web caching)
+ - Replication possibilities (eventual consistency)
+     + Update sent to all replicas
+     + Update sent to master (sync & async)
+     + Update sent to one replica
+ - Partitioning
+     + Single record: easy
+     + Arbitrary transactions: 2PC
+     + Entity groups: group of entities that share affinity
+     + Provide transaction support within entity groups
+ - Caching
+     + wat
+
+## BASE vs ACID
+
+### ACID (model)
+
+ - model for correct database behaviour
+ - **Atomicity**: Either it all succeeds or all fails
+ - **Consistency**: Transaction on a correct database leaves it in correct state
+ - **Isolation**: Looks as if each transaction runs by itself
+ - **Durability**: Once commmited, cannot be rolled back
+ - Developers do not worry about leaving in partial state
+ - Transactions cannot glimpse partially completed state of other one
+ - ACID is costly:
+     + Either use locks (contention)
+     + Snapshot mechanisms keep a history of each data item
+ - Two types of transactions:
+     + Embarassingly easy ones
+     + Conflict-prone ones (bad scalability)
+
+### Serial and Serialisable
+
+ - **Serial**: At most one transaction at a time, commit or abort before next
+ - **Serialisability**: Ilusion of serial execution (identical outcome)
+
+### BASE (methodology)
+
+ - "Basically Available Soft-state Services with Eventual Consistency"
+ - Transactions that scale well in cloud systems
+ - **Basically Available**: Rapid responses even when some replicas can't be contacted
+ - **Soft-state Service**: Runs in first tier, cannot store data, passes it along
+ - **Eventual consistency**: Could use cached data, make guesses, skip locks
+
+#### How BASE is Used
+
+ - Use transactions but remove Begin/Commit
+ - Fragment into steps that can be done in parallel
+ - Each step can be associated with a single event that triggers that step (multicast)
+ - Leader stores events in a message queue
+ - Mask the asynchronous side effects to the user
+
+### Amazon Dynamo
+
+ - Key-value storage based on DHT (like Chord)
+ - Dynamo is in tier 2 for every data centre (everything for a given user)
+ - Dynamo was impacted if a component was slow or overloaded
+ - Node $K$ wants to use finger table to route to $K + 2^i$ but gets no acknowledgement
+ - Dynamo tries again with $K+2^{i-1}$
+ - If a target node doesn't respond, do Get/Put on the next node that responds
+ - On misrouting and miss-storing, confusing things can happen but eventually repaired
+
+## BitTorrent
+
+ - Large-scale P2P network
+ - Incentive-based: the more you give the more you get
+ - Cannot use IP Multicast
+     + Not supported by many ISPs
+
+### End-host Based Multicast
+
+ - Multiple uploaders
+ - Lots of nodes want to download => use them for upload
+ - Application-level multicast
+ - Single tree:
+     + Node dying or being slow affects whole tree
+     + Leaf nodes do no work
+
+### BitTorrent
+
+ - File split into smaller pieces
+ - Nodes request desired pieces from neighbours
+ - Not downloaded in sequential order
+ - BitTorrent does not support streaming
+
+#### Swarm
+
+ - Set of peers all downloading the same file
+ - Organised as a random mesh
+ - Each node knows pieces downloaded by other nodes in swarm
+
+#### Implementation
+
+ - Tracker keeps track of all peers downloading the file
+ - Torrent file contains
+     + URL of tracker
+     + Piece length
+     + SHA-1 hashes of each piece
+     + Filenames
+
+#### Piece Chossing Strategy
+
+ - **Rarest First Piece**: Look at all pieces at all peers and request piece that's owned by fewest peers
+     + Increases diversity, throughput, likelihood of completion
+ - **Random First Piece**: Request random piece
+ - **End Game Mode**: When requests sent for all sub-pieces, send requests to all peers
+
+#### Incentive to Upload
+
+ - Peer A said to choke peer B if decided not to upload to B
+ - Peer A unchokes at most 4 interested peers at any time
+     + Three with largest upload rates to A
+     + One randomly chosen one
+ - A peer is snubbed when each of its peers chokes it
+
+#### BitTorrent Advantages
+
+ - Pull-based transfer
+ - Slow nodes do not slow down fast nodes
+ - Allows upload from hosts with parts of a file
+ - Rewards fastest uploaders
+ - Does not do search
+
+#### Trackerless BitTorrent
+
+ - Using a DHT
+ - Ran by a normal end host (not a webserver)
+
+## Data Warehousing
+
+ - Two types of database workloads
+     + **OLTP (online transaction processing)**
+         * e-commerce, banking (user facing, concurrent)
+         * small set of standard transactional queries
+     + **OLAP (online analytical processing)**
+         * business intelligence, data mining (back-end)
+         * complex analytical queries, often ad hoc
+ - Need to separate two workloads into separate databases
+ - **OLTP** is (ETL) extracted, transformed and loaded into **OLAP**
+ - OLAP Cubes: Lots of group bys and aggregations
+
+### ETL Bottleneck
+
+ - Usually done overnight: what if takes longer?
+ - Use Hadoop to do this => better performance/scalability
+
+### Secondary Sorting
+
+ - Use part of the value as a key => Hadoop will sort it out
+
+### Projection in MapReduce
+
+ - Mappers choose only appropriate attributes
+
+### Selection in MapReduce
+
+ - Mappers choose only tuples that satisfy criteria
+
+### GroupBy and Aggregation
+
+ - Map over tuples emit value and group by key
+ - Reducer computes the aggregate value
+
+### Joins in MapReduce
+
+ - Reduce-side Join
+     + Map over tuples and emit join key as secondary key
+     + Perform join in reducer
+     + Need to ensure that `R` comes before `S`
+     + In Many-to-many, make sure we can hold them in memory
+ - Map-side Join
+     + Assume the tables are sorted by join key
+     + Map over one dataset, read from other partition
+ - In-memory Join
+     + Load one dataset into memory, iterate over other dataset
+     + Distribute `R` to all nodes
+     + Map over `S`, look up join key in `R`
+     + **Striped variant**
+         * Divide `R` into partitions, join each with `S`, then merge
+     + **Memcached variant**
+         * Load R into memcached
+         * Instead of in-memory lookup do in-memcached lookup
+ - In-memory (memory) > map-side join (sorted, partitioning) > reduce-side join
+
+### High Level Languages
+
+ - Hive
+     + Data warehousing in Hadoop
+     + Uses HQL, variant of SQL, stored in HDFS
+ - Pig
+     + Scripts written in Pig Latin
+     + Focused on data transformations
+ 
+### MapReduce Disadvantages
+
+ - Misses Schemas, separation from application
+ - Poor implementation (brute force)
+ - Misses indexing, transactions, etc.
+ - Not compatible with DBMS tools
+ - Maturity, not capability
+
+### ETL Redux
+
+ - Put Hadoop between OLTP and OLAP
+ - Maybe load first then extract and then transform
+
+### RDBMS vs. MapReduce
+
+ - RDBMS
+     + Multipurpose: analysis and transactions; batch and interactive
+     + Integrity via ACID transactions
+     + Lots of tools and SQL
+     + Failures infrequent
+ - MapReduce
+     + Large clusters, fault tolerant
+     + Data is accessed in "native format"
+     + Supports many query languages
+     + Failures are common
