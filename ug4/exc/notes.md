@@ -152,7 +152,7 @@ Software as a Service
 
 ### Shuffle and Sort
 
- - Mapper 
+ - Mapper
      + Outputs are buffered in a circular buffer
      + When buffer hits threshold, spill the contents on to disk
      + Contents are merged into a single file (within each partition), combiners run
@@ -200,7 +200,7 @@ Software as a Service
      + Nearer location for data access
  - Remote sites working when local fail
  - Protection against data correction
- 
+
 ### Requirements
 
   - Transparency: clients see logical objects not physical, each access return single object
@@ -284,7 +284,7 @@ Software as a Service
 ### System ISA
 
  - The inner rings: 0 (and maybe 1)
- - Control registers of the CPU 
+ - Control registers of the CPU
  - System clock
  - Memory management unit: page table, TLB
  - Device I/O
@@ -598,7 +598,7 @@ Software as a Service
  - Pig
      + Scripts written in Pig Latin
      + Focused on data transformations
- 
+
 ### MapReduce Disadvantages
 
  - Misses Schemas, separation from application
@@ -700,7 +700,7 @@ Software as a Service
      + The error is the maximum number of times the item could have occurred in previous buckets
      + An entry gets deleted if its $frequency + error < bucket label$
  - $Frequency error \leq Number of windows (\epsilon N)$
- - Usually set $\epsilon = 10% of support s$
+ - Usually set $\epsilon = 10\% of support s$
  - Output is elements with counter values exceeding $s N - \epsilon N$
  - Frequencies are underestimated by at most $\epsilon N$
  - No false negatives
@@ -709,7 +709,7 @@ Software as a Service
 #### Sticky Sampling
 
  - Probabilistic technique
- - Three parameters: Support (s), error (\epsilon), probability of failure (\delta)
+ - Three parameters: Support (s), error ($\epsilon$), probability of failure ($\delta$)
  - Data structure tracking item, frequency
  - Sampling rate decreases with increase in number of processed data elements
  - New entry:
