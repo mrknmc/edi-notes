@@ -15,7 +15,6 @@ Software as a Service
 
 :   Run the software for me (GMail, Salesforce, etc.)
 
-
 ## Big Picture
 
  - Architecture has tiers:
@@ -616,7 +615,7 @@ Software as a Service
 ### RDBMS vs. MapReduce
 
  - RDBMS
-     + Multipurpose: analysis and transactions; batch and interactive
+     + Multi-purpose: analysis and transactions; batch and interactive
      + Integrity via ACID transactions
      + Lots of tools and SQL
      + Failures infrequent
@@ -625,3 +624,181 @@ Software as a Service
      + Data is accessed in "native format"
      + Supports many query languages
      + Failures are common
+
+## Data Streams
+
+ - Large data volume, arriving at a high rate, continuous, ordered sequence of items
+ - Event detection, reaction, and analytics
+ - Timestamping
+     + Explicit: date/time
+     + Implicit: Given when it arrives
+ - Time Representation
+     + Physical: date/time
+     + Logical: Order integer
+
+### DBMS VS DSMS
+
+ - DSMS: at multiple observation points, voluminous streams in, reduced streams out
+     + Model: transient relations
+     + Relation: tuple sequence
+     + Data update: appends
+     + Query: persistent
+     + Query answer: approximate
+     + Query evaluation: one pass
+     + Query plan: adaptive
+ - DBMS: outputs of DSMS can be treated as input to DBMS
+     + Model: persistent relations
+     + Relation: tuple set/bag
+     + Data update: modifications
+     + Query: transient
+     + Query answer: exact
+     + Query evaluation: arbitrary
+     + Query plan: fixed
+
+### Windows
+
+ - Mechanism for extracting a finite relation from infinite stream
+ - Restricting scope by:
+     + Window based on ordering attributes (time)
+         * Sliding window: overlap windows
+         * Tumbling window: "partition" windows
+     + Window based in item counts (take first 100, etc.)
+         * Could be sliding or tumbling
+         * Problematic for non-unique timestamps => could be non-deterministic
+         * Fluctuating input rates could cause problems
+         * Can be converted to time-based if we know rate
+     + Window based on explicit markers (e.g. punctuations)
+         * Application inserts "end-of-processing" markers
+         * Variable length windows
+         * Windows could become too small or large
+
+### Data Stream Mining
+
+ - Mining query streams: Google wants to know what's popular
+ - Mining click streams: Yahoo wants to know which pages are popular
+
+#### Frequent Pattern Mining
+
+ - Finding patterns that occur more often than a threshold
+     + Patterns refer to items, item-sets, or sequences
+     + Threshold refers to percentage of pattern occurrences to total number of transactions
+ - Finding association rules: A->B (item sequence pattern)
+ - **Confidence**: Measure that says B exists, given A exists
+ - Cannot afford multiple passes
+     + Minimised requirements for memory
+     + Trade off between storage, complexity and accuracy
+
+#### Lossy Counting
+
+ - Deterministic technique
+ - Stream is divided into buckets, each one is given a label starting from 1
+ - Two parameters: Support (s), error ($\epsilon$)
+ - Data structure tracking item, frequency, and maximum possible error
+ - New entry:
+     + Increase frequency if exists
+     + Add new entry with frequency 1 and error $1 - bucket label$
+     + The error is the maximum number of times the item could have occurred in previous buckets
+     + An entry gets deleted if its $frequency + error < bucket label$
+ - $Frequency error \leq Number of windows (\epsilon N)$
+ - Usually set $\epsilon = 10% of support s$
+ - Output is elements with counter values exceeding $s N - \epsilon N$
+ - Frequencies are underestimated by at most $\epsilon N$
+ - No false negatives
+ - False positives have a frequency at least $sN - \epsilon N$
+
+#### Sticky Sampling
+
+ - Probabilistic technique
+ - Three parameters: Support (s), error (\epsilon), probability of failure (\delta)
+ - Data structure tracking item, frequency
+ - Sampling rate decreases with increase in number of processed data elements
+ - New entry:
+     + Increase frequency if exists
+     + If not, sample item with current sampling rate, if selected add new entry, otherwise ignore
+ - With every change in sampling rate toss a coin for each entry
+     + Decreasing the frequency for each unsuccessful toss
+     + If frequency down to zero, release it
+ - Sampling rate: $2/N\epsilon \times \log(1/s\delta)$
+ - Same guarantees but non-deterministic
+ - Number of counters is independent of N
+
+### Storm & Low Latency Processing
+
+ - Distributed system, results as quickly as possible
+ - Algorithmic trading, event detection
+
+## Beyond MapReduce
+
+ - We want schemas => no parsing, auxiliary structures
+ - Relational algorithms have been optimised for underlying system
+
+### Apache Thrift
+
+ - Data Definition Language with numerous language bindings
+ - Provide RPC mechanisms for services
+ - Compact binary encoding of typed structs
+
+### Storage Layout
+
+ - **Row store**: row after row sequentially
+     + Easy to modify a record (indexing)
+     + Might read unnecessary data when processing
+ - **Column store**: column after column sequentially
+     + Only read necessary data when processing
+     + Multiple writes when writing a row
+     + Read efficiency: if only few columns, no need to drag rest of values
+     + Better compression: Repeated values appear more frequently in a column than "repeated rows"
+     + Vectorised processing: CPU architecture-level support
+     + Operate directly on compressed data
+
+### Pig
+
+ - Sequence of statements manipulating relations
+ - Data model: atoms, tuples, bags, maps, json
+ - Pig user-defined functions (UDFs) make it extensible
+
+### HadoopDB
+
+ - Parallel databases focused on performance
+ - Hadoop focused on scalability, flexibility, and fault tolerance
+ - Co-locate a RDBMS on every slave node
+ - Push operations into the DB
+
+### HaLoop
+
+ - MapReduce under-performs in iterative algorithms
+ - Java verbosity, long startup time, data shuffling
+ - Loop-aware scheduling
+ - Caching reducer input and reducer output
+
+### Pregel
+
+ - Based on Bulk Synchronous Parallel
+ - Computational units encoded in directed graph
+ - Computation proceeds in series of supersteps
+ - Each vertex, at each superstep:
+     + Receives messages directed at it from previous superstep
+     + Executes a user-defined function
+     + Emits messages to other vertices (next superstep)
+ - Terminates
+     + A vertex can choose to deactivate
+     + Woken up if new messages received
+     + Computation halts when all vertices inactive
+ - Master-Slave architecture
+     + Vertices are hash-partitioned and assigned to workers
+     + Everything happens in memory
+ - Processing cycle
+     + Master tells all workers to advance a single superstep
+     + Worker delivers messages from previous superstep, executing vertex computation
+     + Messages sent asynchronously
+     + Worker notifies master of number of active vertices
+ - Fault tolerant
+
+### YARN: Hadoop 2.0
+
+ - Yet-Another-Resource-Negotiator
+ - Provides API to develop any generic distributed application
+ - Handles scheduling and resource request
+ - Hadoop is one such application on top of YARN
+
+
