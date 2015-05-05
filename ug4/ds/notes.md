@@ -1,6 +1,4 @@
 
-### Random Definitions
-
 Diameter
 
 :   Maximum distance between 2 nodes in network
@@ -268,4 +266,58 @@ Tree network
 
 **Vector Clocks**
 
+ - If $a \rightarrow b$ then $c(a) < c(b)$.
+ - Also if $c(a) < c(b)$ then $a \rightarrow b$.
+ - Each process $i$ maintains a vector $V_i$.
+ - $V_i$ has n elements
+     + keeps clock $V_i[j]$ for every other process $j$
+     + On every local event: $V_i[i] = V_i[i] + 1$
+     + On sending a message at $i$
+         * Adds 1 to $V_i[i]$
+         * Sends entire $V_i$
+     + On receiving a message at $j$
+         * Take max element by element
+         * $V_j[k] = max(V_j[k], V_i[k])$ for all $k$
+         * Adds 1 to $V_j[j]$ (local event)
+ - $V == V'$ iff $V[i] == V'[i]$ for all $i$
+ - $V < V'$ iff $V[i] < V'[i]$ for all $i$
+ - $V \leq V'$ iff $V[i] \leq V'[i]$ for all $i$
+ - $a \rightarrow b$ if $V(a) < V(b)$
+ - Two events are concurrent if neither < nor > is true
+ - Drawbacks
+     + Entire vector sent with message
+     + All vector elements (n) have to be checked
+     + $\Omega(n)$ per message communication complexity, increases with time
 
+**Distributed Snapshots**
+
+ - Take a snapshot of the system
+ - Global state: state of all processes and comm. channels
+ - Consistent cuts: set of states of all processes is a consistent cut if: for any states $s$, $t$ in the cut $s || t$.
+ - If $a \rightarrow b$, then $b$ cannot be before cut and $a$ after cut
+
+**Distributed Snapshot Algorithm**
+
+ - Ask each process to record state.
+ - The set of states must be a consistent cut.
+ - Assumptions
+     + Communication channels are FIFO
+     + Processes communicate only with neighbours
+     + We assume for now that everyone is a neighbour
+     + Processes do not fail
+
+**Chandy and Lamport Algorithm**
+
+ - Send Rule at $i$
+     + Process $i$ records state
+     + On every outgoing channel where a marker has not been sent $i$ sends a marker on the channel before sending any other message.
+ - Receive Rule at $i$ on channel $C$
+     + $i$ has not received a marker before
+         * Record state of $i$
+         * Record state of $C$ as empty
+         * Follow Send Rule
+     + Otherwise
+         * Record state of $C$ as set of messages received on $C$ since recording $i$'s state and before receiving marker on $C$.
+ - Algorithm stops when all processes have received marker on all channels.
+ - $O(l)$ message complexity: $l$ is number of links, plus the messages sent by normal execution of processes
+ - $O(d)$ time complexity: $d$ is diameter
