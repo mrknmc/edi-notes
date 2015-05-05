@@ -321,3 +321,39 @@ Tree network
  - Algorithm stops when all processes have received marker on all channels.
  - $O(l)$ message complexity: $l$ is number of links, plus the messages sent by normal execution of processes
  - $O(d)$ time complexity: $d$ is diameter
+
+**Snapshot Properties**
+
+ - If $s_1$ (in $p_1$) $\rightarrow$ $s_2$ (in $p_2$)
+     + Then $s_2$ before cut $\implies$ $s_1$ before cut
+     + Proof by contradiction: $s_1$ after cut
+         * $p_1$ recorded its state before $s_1$
+         * Message $m$ from $p_1$ to $p_2$: this causes $s_1 \rightarrow s_2$ to be true
+         * $p_1$ must have recorded state before sending $m$
+         * $p_1$ must have sent marker to $p_2$ before sending $m$
+         * $p_2$ must have received marker before $m$ and before $s_2$
+         * $s_2$ must be after cut: contradiction
+
+**Application of Snapshots**
+
+ - Detection of stable predicates
+ - A property that once it becomes true, stays true
+ - Examples
+     + Deadlocked: every process in some subset is waiting for another
+     + Terminated: once ended, computation remains stopped
+     + Loss of token: in mutex, process with token can access a resource. If token gets lost, it stays lost.
+     + Garbage: If no-one has a reference to a file, that file can be deleted
+ - So if such a property was true before the snapshot, it is true in snapshot, and can be detected by checking the snapshot
+
+**Non-stable Predicates**
+
+ - Predicate may have happened but state has changed, e.g. "Was this file opened at some time?
+ - Two types
+     + Possibly $B$: $B$ could have happened
+     + Definitely $B$: $B$ definitely happened
+ - Collecting global states
+     + Each process notes its every state & vector timestamp
+     + Sends it to server
+     + We only need to save state changes affecting the predicate
+     + The server looks at these and tries to figure out if predicate $B$ was possibly or definitely true
+
