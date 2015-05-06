@@ -750,3 +750,43 @@ Tree network
 
 ---
 
+**Dijkstra-Scholten Algorithm**
+
+ - Maintains a tree of which node initiated computation at which other node
+ - Each node has active children counter $cc$
+ - When node $x$ sends message to $y$
+     + $x$ increments $cc$
+     + If $y$ was idle it becomes active and $x$ is parent
+     + If $y$ was active send ack to $x$
+ - When $x$ receives ack it decrements $cc$
+ - When $y$ finishes computation and has $cc = 0$ it sends ack to parent
+
+**Distributed OS**
+
+ - OSes on different computers are like a single OS
+ - Process does not know that other resources/processes are at other computers
+ - One interface to all resources in the network
+ - Disadvantages
+     + What if part of network fails and there are 2 sets of processes now.
+     + Say $A$ and $B$ start on some machine but OS moves one of them elsewhere. Inefficient if they communicate a lot.
+     + Access to off-site resources has to be through explicit connection (cannot have all machines in same OS).
+
+**Distributed Computation in Networked OS**
+
+ - Distributed algorithms for synchronisation, consistent ordering, mutex, leader election, failure detection etc.
+
+**Virtualisation** 
+
+ - Virtual machine runs as an application on a computer
+ - It emulates hardware of the computer
+ - When application ran in guest OS, the VM emulates the process of the OS as well as the application
+ - Good for sandboxing, testing, backup
+ - Server farms run several VMs on one physical server
+ - Advantages
+     + More flexibility
+     + Easier to turn on/off (scale)
+     + Easier to backup
+     + VMs can be moved from one machine to another
+
+---
+
