@@ -651,3 +651,102 @@ Tree network
 
 ---
 
+**Reliable Multicast**
+
+ - Sending process is in multicast group
+ - Nodes may fail
+ - One to one communication between processes
+ - No network fails, no messages undelivered
+ - $multicast(g, m)$: message $m$ to group $g$
+ - $receive(m)$: OS receives message and gives to multicasting process
+ - $deliver(m)$: multicast process delivers to application
+ - Integrity: A working process $p$ in group $g$ delivers $m$ at most once, and $m$ was multicast by some working process.
+ - Agreement: If a working process delivers $m$ then all other working processes in group $g$ will deliver $m$
+
+**Basic Reliable Multicast**
+
+ - $send(m, q)$ to each process $q$ in group
+ - On receive, pretend it was multicast
+ - Does not implement Agreement: sender could crash mid-send
+
+**Reliable Multicast Implementation**
+
+ - Initialize $Received = {}$
+ - Send message to each process in group
+ - On receive if not in $Received$
+     + Add it to $Received$
+     + Forward $m$ along
+     + Deliver to application
+ - Satisfies Integrity: $send(m, q)$ is reliable
+ - Satisfies Agreement: forwards before delivers
+
+**Multicast Ordering**
+
+ - We want messages delivered in correct order
+ - FIFO: if a process performs 2 multicasts, every process sees them in correct order
+ - Causal: if $multicast(m) \rightarrow multicast(m')$ then deliver $m$ before $m'$ (implies FIFO)
+ - Total: All working processes deliver messages in same order
+ - Our Multicast is FIFO assuming it sends to group members in same order and channels are FIFO
+
+**Causally-ordered Multicast**
+
+ - Each process has a Vector clock
+ - Suppose $p$ sends multicast $m$
+ - $q$ receives $m$ and holds until
+     + It has delivered any earlier message by $p$
+     + It has delivered any multicast message delivered by $p$ before $m$
+ - Checking using vector timestamps
+
+**Totally-ordered Multicast**
+
+ - Using a sequencer process
+     + Process $p$ wants to multicast
+     + It requests sequence number from sequencer
+     + Send multicast with sequence
+     + Multicasts are delivered by sequence number
+     + SPOF and bottleneck
+ - Using collective agreement
+     + Process $p$ sends basic multicast to the group
+     + Each process picks a sequence number
+     + Processes run protocol to agree on sequence number
+     + Messages delivered according to the agreement
+
+**Basic Consensus**
+
+ - Set of processes each with state undecided
+ - Termination: Set their decision variable and enter decided state
+ - Agreement: If processes entered decided state their decisions are equal
+ - Integrity: If all processes proposed value $v$ then all of them have decision $v$
+ - Simple algorithm
+     + Use reliable multicast to communicate all values
+     + Rule e.g. min or max decides
+
+**Byzantine Generals Consensus**
+
+ - Commander issues attack
+ - One or more processes may be faulty
+ - Termination: everyone decides
+ - Agreement: non-faulty processes agree
+ - Integrity: Non-faulty commander decides
+ - No solution with $n < 3f$ processes
+
+**Interactive Consensus** 
+
+ - Processes have to agree on a vector of values
+ - Each process contributes only to part of the vector but all processes have same vector in the end
+ - Termination: everyone decides
+ - Agreement: same vector $V$
+ - If $p_i$ proposes $x$ then $V_i = x$ for all
+
+**Termination Detection** 
+
+ - Computation started by $s$ by sending messages
+ - Process $s$ starts with weight 1.0
+ - When any process sends a message it puts part of its weight in the message
+ - When any process receives a message it adds weight to own weight
+ - When a process finishes computing it sends current weight to $s$
+ - When $s$ has weight = 1.0 it knows the deed is done
+ - No message is lost (TCP required)
+
+---
+
