@@ -92,7 +92,7 @@ Tree network
 
  - Initialise $P = {x}$ and $Q = E$.
  - While $P \neq V$
-     + Select edge $(u, v)$ in the cut $(P, V\P)$ with smallest weight
+     + Select edge $(u, v)$ in the cut $(P, V \setminus P)$ with smallest weight
      + Add $v$ to $P$
  - If we search for minimum each time it's $O(m n)$ 
  - If we use heaps it's $O(m \log{n})$ or $O(m + n \log{n})$
@@ -356,4 +356,298 @@ Tree network
      + Sends it to server
      + We only need to save state changes affecting the predicate
      + The server looks at these and tries to figure out if predicate $B$ was possibly or definitely true
+
+**Possible States**
+
+ - Server checks for possible states: consistent cuts for $B$
+ - Create a lattice where a downward path from initial state to final state is a valid execution
+ - **Possibly $B$** occurs on at least downward path
+     + Do BFS search from start
+     + If there is one state with $B$ true then possibly $b$ is true
+ - **Definitely $B$** occurs on all downward paths
+     + Do BFS search from start
+     + Do not visit nodes with $B$ true
+     + If BFS reaches final state and $B$ is not true there then definitely $B$ is false, otherwise it is true
+ - Complexity for both is $O(k^N)$ where $k$ is max number of events at a single process
+
+**Mutual Exclusion**
+
+:   Multiple processes should not use same resource at once. Restricts access to critical section to at most one process at a time.
+
+**Critical Section**
+
+:   Part of code that uses the restricted resource
+
+**Mutex Properties**
+
+ - **Safety**: Two processes should not use critical section simultaneously.
+ - **Liveness**: Every live request for CS is eventually granted.
+ - **Fairness**: Requests must be granted in the order they are made.
+
+**Mutex Algorithms Assumptions**
+
+ - Only one resource
+ - All channels are FIFO
+
+**Central Server Algorithm**
+
+ - There is a coordinator that holds a _token_ for the resource.
+ - Other processes send token requests to coordinator.
+ - Server puts incoming requests into a queue.
+ - Sends token to first process in queue.
+ - Process returns token when done.
+ - Advantages: simple and constant complexity per message
+ - Disadvantages:
+     + Central point of failure
+     + Central bottleneck
+     + Does not preserve order in async systems
+     + Coordinator must be elected
+
+**Token Ring Algorithm**
+
+ - Processes arranged in a ring
+ - Token is continuously passed in one direction
+ - If process does not need to enter CS, it passes token
+ - Otherwise it holds token, executes CS and then passes
+ - Disadvantages
+     + Not in order
+     + Long delay in getting token
+     + One failure breaks ring
+     + Passes token even without requests
+
+**Lamport's Mutex Algorithm**
+
+ - Every node $i$ has a queue of requests (sorted by timestamps)
+ - Process $i$ sends CS request
+     + $REQUEST(timestamp, i)$ to all processes
+     + Enters $(timestamp, i)$ in own queue
+ - Process $j$ receives $REQUEST(timestamp, i)$
+     + Send timestamped $REPLY$ to $i$
+     + Enters $(timestamp, i)$ in queue
+ - Process $i$ enters CS if
+     + $(timestamp, i)$ at head of own queue
+     + Received $REPLY$ from all processes
+ - To release CS: send $RELEASE$ to all
+ - On receiving $RELEASE$ at $j$ remove $(timestamp, i)$ from queue
+ - Complexity: $3(n-1)$ messages per CS request
+
+**Ricart and Agrawala's Algorithm**
+
+ - Node $j$ does not send $REPLY$ if $j$ has request with timestamp lower than $i$ request
+ - Node $j$ delays the $REPLY$ until after own $RELEASE$
+ - Process $i$ sends CS request
+     + $REQUEST(timestamp, i)$ to all processes
+ - Process $j$ receives $REQUEST(timestamp, i)$
+     +  If $j$ has no own outstanding requests earlier than $timestamp$ or is not executing CS
+         * Send $REPLY$ to $i$
+         * Enters $(timestamp, i)$ to own queue
+     + Else keep $(timestamp, i)$ pending
+ - Process $i$ enters CS if it has received $REPLY$ from all.
+ - To release CS: send $REPLY$ to pending processes.
+ - Complexity: $2(n-1)$ messages per CS request.
+
+**Maekawa's Quorum Algorithm**
+
+ - Instead of getting permission from all, get it from subset
+ - For each process $i$ we have a voting quorum $V_i$
+     + For all $i,j: V_i \cap V_j \neq \emptyset$
+     + For all $i: i \in V_i$
+     + Voting sets are same size
+     + Each node part of same number of sets
+ - Arrange nodes in a square grid
+ - Quorum for node $i$ are all nodes in same row or column
+ - Any two quorums intersect
+ - Complexity: $O(\sqrt{n})$ per CS request.
+
+---
+
+**Packets**
+
+:   Messages sent in (fixed-size) packets.
+
+**Local Area Networks**
+
+ - Medium: Broadcast
+ - Message from one computer to all other computers
+ - Ethernet LAN is a broadcast medium and so is Wireless LAN
+ - Advantages
+     + Sending a common message to everyone is easy
+     + Finding destination is easy: destination field
+ - Disadvantage: Medium access - multiple transmissions at the same time
+
+**Medium Access**
+
+ - Only one transmission at a time
+ - Protocols
+     + TDMA: every node has a periodic slot
+     + CSMA: see if anyone else transmitting, defer
+     + ACKs are used to confirm transmission
+ - More complicated for wireless (hidden terminal)
+
+**Routing**
+
+ - Finding a path in the network
+ - Every node has a routing table
+ - Equivalent to a BFS tree at every node
+ - Smaller routing tables by combining addresses
+
+**Location-based Routing**
+
+ - Uses nodes' locations to discover paths
+ - Greedy algorithm: forward to neighbour closest
+
+**Transport Management**
+
+ - UDP: send packet, hope it gets delivered
+     + not FIFO
+     + used in streaming
+ - TCP: send packet, ensure arrival
+     + is FIFO
+     + waits for ACKs, otherwise resends
+     + slows down packet stream when packets not ACKed (assumes routers dropping them)
+
+**Overlay Network**
+
+ - parts of the network sometimes ignored
+ - nodes that carry but not participate or edges not used
+ - used in P2P networks where communication only with known nodes
+
+**Computation**
+
+ - Synchronous
+     + Operation in rounds
+     + In a round, a node performs computation, and then sends messages
+     + All messages sent at the end of round $x$ are delivered at start of round $x + 1$
+     + Can be implemented with $m + c$ duration
+         * if message transmission time bounded by $m$
+         * Computation times are bounded by $c$
+         * Clocks are synchronised
+     + Easier to design, starting point for design
+ - Asynchronous
+     + No synchronisation or rounds
+     + Nodes compute and send at different speeds
+     + No assumptions about speeds
+     + Simplifying assumptions can be made e.g.
+         * Channels are FIFO
+         * Code blocks are atomic (uninterrupted by messages)
+         * Either communication or computation bounded
+
+**Failures**
+
+ - Hardware failures
+ - Out of power failure
+ - Software failure
+ - Can be permanent/temporary
+ - Nodes can fail individually or together (correlated)
+
+**Stopping Failure**
+
+:   Node stops working, assumptions about what it finished and who knows about failure.
+
+**Byzantine Failure**
+
+:   Node behaves arbitrarily or as adversary. 
+
+**Link Failure**
+
+:   Can be noise (waves at similar frequencies) or interference (nodes nearby communicating). Channels can become silent & unusable, active & unusable, or active & erroneous message
+
+**Security**
+
+ - Unauthorised access/modification
+ - Attack on nodes: causing nodes to fail, reading data, or taking control
+ - Attack on links: blocking communication, reading channel data, corrupting data
+
+**Mobility**
+
+ - Movement makes it harder to design distributed systems
+ - Communication is difficult: delays, lost messages, edge weights change
+
+---
+
+**Leader Election**
+
+ - Agreement is simpler with a master but single point of failure (SPOF)
+ - When one master fails, another takes over
+
+**Failure Detectors**
+
+ - Detecting crashed processes
+ - Detecting "working" is easier (they respond), detecting "failed" is harder.
+ - Unreliable detectors: reply with "suspected (failed)" or "unsuspected".
+ - **Example**
+     + Suppose all messages delivered within $D$ seconds.
+     + Then we can require heartbeat every $T$ seconds to failure detector.
+     + If a failure detector does not get heartbeat in $T+D$ seconds, it marks process as "suspected" or "failed".
+ - Synchronous: simple, send a message and wait for $2D+ \epsilon$ (no need for detector)
+ - If $T$ or $D$ too large: long failure timeouts
+ - If $T$ too small: too much pressure on clients
+ - If $D$ too small: "working" could get marked as "failed"
+
+**Real World**
+
+ - Both synchronous and asynchronous too rigid
+ - Have 2 values: $D1$ and $D2$
+ - Use probabilities: delivery time is a distribution, estimate probability of failure
+ - $a$: probability process fails within time $T$
+ - $b$: probability a message not received in $T+D$
+ - Want to estimate $P(a|b)$ using Bayes Theorem
+
+**Distinguished Leader**
+
+: Leader must have a property other nodes do not have: node with highest ID.
+
+**Aggregation Tree Leader Election**
+
+ - Node $r$ detects leader failed, initiates election
+ - Node $r$ creates BFS tree
+ - Asks for max node ID via aggregation (convergecast)
+ - If all $n$ nodes start election needs $n$ trees
+     + $O(n^2)$ communication and $O(n)$ memory per node
+
+**Ring Leader Election (Chang and Roberts)**
+
+ - Nodes send to right max of received from left and own ID
+ - When max ID node receives the ID it knows everyone has seen it and declares itself the leader
+ - If multiple elections at the same time: it sends the ID only if greater than own ID
+ - Message complexity: $O(n^2)$
+
+**Ring Leader Election (Hirschberg and Sinclair)**
+
+ - $k-neighborhood$ of node $p$: set of all nodes within distance $k$.
+ - Message has a time-to-live (ttl) variable decremented on receiving. When zero, not forwarded.
+ - Algorithm operates in phases, each phase ttl is doubled
+ - Node sends messages right and left with ID and ttl
+ - Node returns message if ID in message greater and ttl is zero
+ - Otherwise it forwards it and decreases ttl
+ - If both returned, node is leader of $k-neighborhood$
+ - When $2^i >= n/2$ only 1 process survives: the leader
+ - Number of rounds: $O(\log{n})$
+ - Number of messages: $O(n)$ per phase
+
+**Bully Algorithm**
+
+ - Each node knows IDs of all nodes
+ - Synchronous (round) operation
+ - Node $p$ initiates election
+ - $p$ sends message to all nodes with higher ID
+ - If $p$ does not get any replies, it declares itself a leader
+ - Higher ID gets message, responds and starts election
+ - If higher ID gets leader declaration it starts election again
+ - Message complexity: $O(n^2)$
+
+**Multicast**
+
+ - Send message to multiple nodes with only 1 message
+ - Happens only within a group (LAN)
+ - Nodes can accept message and join group (tree at each node)
+ - IP addresses from 224.0.0.0 to 239.255.255.255
+ - A message to one of the addresses sent to all nodes subscribed to the group (same network)
+ - When joining node informs OS which informs network: Internet Group Mgmt protocol (IGMP)
+ - IP Multicast
+     + Sender sends only once
+     + Every router forwards only once
+     + Uses UDP: no guarantees
+
+---
 

@@ -9,6 +9,10 @@ PDFS := $(patsubst %.md,%.pdf,$(wildcard *.md))
 # The all rule makes all the PDF files listed
 all : $(PDFS)
 
+nice:
+	pandoc --from=markdown --to=latex -V fullpage=true -V --latex-engine=xelatex --mathjax --listings -o notes_nice.pdf notes.md
+
+
 # This generic rule accepts PDF targets with corresponding Markdown
 # source, and makes them using pandoc
 %.pdf: %.md
