@@ -863,4 +863,248 @@ Tree network
 
 ---
 
+**Finding Location**
+
+ - Find something on a map, find nearest printer, or friend
+ - GPS is expensive, doesn't work indoors, requires energy
+ - Possible input
+     + Neighbours of each node
+     + Distance/angle to neighbours
+ - Possible output: global or relative location
+ - Distance Measure: Received signal strength indicator (RSSI), signal gets weaker with distance, gets reflected
+
+**Time of Arrival**
+
+:   Used in GPS, needs synchronisation.
+
+**Time Difference of Arrival**
+
+:   Beacons $B1$ and $B2$ transmit simultaneously and time difference at $A$ gives a hyperbola. Beacons $B2$ and $B3$ do the same, intersection is where $A$ is.
+
+**Angle of Arrival**
+
+:   Transmit only in one direction, propagations in other directions cancelled by electronic phase cancellations. Location determined from angle of two beacons.
+
+**Localisation Algorithms**
+
+ - Anchor based: beacon knows its location
+ - Anchor free: relative location only, more difficult
+ - Range based: using distance information
+ - Range free: using hop count as a measure
+
+**Triangulation, trileration**
+
+ - Anchors advertise their coordinates and transmit signals
+ - Other nodes use this to measure distances
+ - Distance measures are not accurate, try to minimise mean square error 
+
+**Indoor Localisation**
+
+ - In which room and what floor is the user?
+ - RADAR fingerprinting
+     + With radio frequency (RF) signals
+     + Need 3 or more anchors
+     + Offline phase: collect detailed map of anchor signal strengths
+     + Online phase: match current signal strength to map
+ - Cricket
+     + Anchor nodes with radio frequency and ultrasound
+     + Measure distance from time difference of the two
+
+**Maximal Likelihood Estimation**
+
+ - $k$ beacons at $(x_i, y_i)$
+ - Node 0 localised at $(x_0, y_0)$
+ - Measured distance between node 0 and beacon $i$ is $r_i$
+ - Error is $r_i - \sqrt{(x_i - x_0)^2 + (y_i - y_0)^2}$
+ - With many anchors system is over-constrained
+ - Solve with least square equation: $x=(A^T A)^{-1}A^Tb$
+
+**Iterative Multilateration**
+
+ - Not all nodes are in range
+ - Find a node that sees 3 beacons
+ - Localise the node: now it can act as a beacon
+ - Problems: errors accumulate, can get stuck
+
+**Ambiguity**
+
+:   Same set of distance measures can have multiple localisations.
+
+**Localisation of UDG**
+
+ - Know neighbours but not distances
+ - Network is a unit disk graph (UDG)
+ - NP-hard problem: try out all possible locations
+
+---
+
+**Routing in ad hoc Wireless Networks**
+
+ - _Proactive protocols_: maintain routing tables at each node that is updated as changes are detected.
+ - _Reactive protocols_: routes are constructed on demand.
+
+**Dynamic Source Routing (DSR)**
+
+ - Node $S$ wants to send a message to node $D$
+ - $S$ initiates route discovery: floods network with _route request_ (RREQ) message
+ - Each node appends its own id to the message
+ - On receiving first RREQ message, $D$ sends _route reply_ (RREP) sent on a route obtained by reversing ids in RREQ
+ - On link failure, error message with link name is sent back to $S$ which deletes that route
+ - Route Caching: node learns routes to all nodes on path
+     + Advantages: $S$ may not need to send RREQ or intermediate node can reply with complete route
+     + Disadvantages: cache may be stale
+ - Advantages
+     + Routes computed only when needed
+     + Caching can make it fast
+     + No loops
+ - Disadvantages
+     + Entire route must be in message
+     + Flooding causes communication explosion
+     + Stale caches are a problem
+
+**Ad hoc On-Demand Distance Vector Routing**
+
+ - Maintains routing tables at nodes
+ - No need to store route in message and no caches
+ - Source floods the network, nodes create reverse path
+ - A node forwards RREQ only once, RREP is forwarded
+ - Paths expire if not used for too long
+ - Loops can be created with link failure and out-of-date routing tables
+ - Sequence Numbers avoid loops
+     + If $A$ has route to $D$, it keeps a sequence number
+     + The number is periodically incremented (age of info)
+     + Nodes do not reply to RREQ with a higher sequence number
+ - Better for dynamic, changing environments
+
+**Geographical Routing**
+
+ - Uses node locations to discover paths
+ - Nodes know their location and their 1-hop neighbours
+ - Destinations are specified geographically
+ - Greedy routing can get stuck at local minimum
+
+**Face Routing**
+
+ - Uses a planar graph
+ - Keep left hand on the wall, walk until hit straight line connecting source and destination then switch to next face
+ - Information stored in the message: source and destination positions, node when it enters face routing mode, first edge on current face
+ - Knowledge is local: 1-hop neighbour locations
+ - Guaranteed delivery of a message if there is a path: algorithm will circle around
+ - Planar graph can be computed from UDG
+
+**Relative Neighbourhood Graph**
+
+:   Contains an edge if intersection is empty of other nodes. Subset of MST. It is _planar_ and _keeps connectivity_.
+
+**Gabriel Graph (GG)**
+
+:   Contains an edge if the disk with node-distance as diameter is empty of other nodes. Subset of RNG. It is _planar_ and _keeps connectivity_.
+
+**Adaptive Face Routing**
+
+ - Shortest path on planar graph is bounded by $L$ hops
+ - Bound area by ellipsoid, never walk outside of it
+ - Follow one direction, if ellipsoid hit turn back
+ - $O(L^2)$ complexity
+
+**Greedy-Face-Greedy Strategy**
+
+ - Use Greedy until stuck at $p$, switch to Face until at $q$ which is nearer destination that $p$, switch back to Greedy
+
+**Data-centric Routing**
+
+ - Try to find a node that has certain data e.g. elephant video
+ - Information Producer: can be anywhere, many of the same
+ - Information Consumer: can be anywhere, can be many
+
+**Distributed Database**
+
+ - Consumer does not know where producer is and vice versa
+ - Push: producer spreads data
+ - Pull: consumer looks for data
+ - Push-pull: both at the same time
+
+**Geographic Hashtables (GHT)**
+
+ - Hash gives coordinates: $H(lion) = (12, 7)$
+ - Producer sends message to $(12, 7)$ via geo routing and $(12, 7)$ stores data
+ - Consumer sends message to $(12, 7)$ and gets data
+ - What if no sensor at $(12, 7)$ or routing gets stuck
+     + $L$ - hash location
+     + $ade$ - face that contains $L$
+     + GHT stores copies on $a$, $d$, $e$
+     + Node $a$ is in charge (home node) makes sure all nodes on face have fresh data. Leader election if $a$ dies.
+ - Hash location is replicated at each level of a quadtree
+ - Advantages: simple, handles load balancing and faults
+ - Disadvantages:
+     + Not sensitive to distance
+     + Overloads boundaries of holes (in network)
+     + Node becomes bottleneck if queried often
+
+---
+
+**Graph Colouring**
+
+:   Assign colours to vertices so neighbours have different colours with minimum number of colours. Colouring gives us sets of nodes that can operate at the same time (nearby nodes should not transmit simultaneously).
+
+**Independent Set (IS)**
+
+:   Subset of vertices that can have same colour.
+
+**Maximum Independent Set**
+
+:   Largest possible IS. NP-hard problem.
+
+**Maximal Independent Set (MIS)**
+
+:   No other vertex can be added to the IS.
+
+ - **Synchronous Algorithm**
+     + Each vertex has 3 states: undecided, decided to enter MIS, decided not to enter MIS
+     + If a neighbour has decided to enter: decide not to enter
+     + If all neighbours are undecided and one or more has higher ID: stay undecided
+     + If all neighbours undecided but highest id: decide to enter
+     + Complexity: $O(n)$ when nodes in a chain sorted by ID
+ - **Fast-MIS (randomised)**
+     + $d(v)$ is degree of $v$
+     + Each $v$ marks itself with probability of $1/2d(v)$
+     + If no higher degree neighbour is marked join MIS
+     + Otherwise node un-marks itself
+     + Remove all nodes that joined MIS and their neighbours
+     + Complexity $O(log n)$
+
+---
+
+**Types of Attack**
+
+ - Eavesdropping/leakage: getting info that not supposed to get
+ - Masquerading: pretending to be someone else
+ - Disruption: spoils system operation e.g. DDOS
+
+**Encryption**
+
+:   Code the message so adversary cannot understand.
+
+**Public Key Encryption**
+
+:   A node has two keys: public (known to everyone) and private. Alice encrypts using public key and only Bob can decrypt using private key. Digital signature is the reverse process.
+
+**RSA**
+
+ - $M$: original plaintext
+ - $C$: cipher text
+ - $e$: public key, $d$: private key
+ - $n = p \times q$ where $p$ and $q$ are primes
+ - Finding prime factors of a number is hard
+
+**Authentication**
+
+ - Alice's public key can be used to check signature but how do we know key is not spoofed.
+ - Depend on trusted third parties (authorities)
+ - e.g. SSL, TLS, Kerberos
+
+**Password Encryption**
+
+:   Store encrypted password, not actual password.
+
 
