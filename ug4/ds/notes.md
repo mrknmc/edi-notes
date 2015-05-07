@@ -790,3 +790,77 @@ Tree network
 
 ---
 
+**Client - Server**
+
+ - For each service there is a known server
+ - Clients get data from the server
+ - Central point of failure: server fails, everything down
+ - Load management: too many clients, slow response
+ - Addressing: have to know the server or find it
+
+**P2P**
+
+ - Users can share files but also CPU cycles, storage, and anonymity
+ - Fault-tolerance: taking down some machines does not stop all transfers
+ - Load balancing: each file hosted by multiple users
+ - User participation: everyone feels involved
+ - Cost efficiency: no need for large server
+ - Hard to control: and hard to take down
+ - Unreliable, uncoordinated, and unmanaged
+
+**Issues in P2P**
+
+ - Connecting: need to find an existing P2P swarm without a server (what about trackers?)
+ - Finding content: want a video but don't know who has it
+ - Quality of Service: file can be unavailable if all users hosting it are off-line
+ - Quality of Data: want file X, another node claims to have it but actually sends Y
+ - Hard to Control: service may deteriorate in quality
+
+**P2P Design Criteria**
+
+ - Budget: low budget solution
+ - Resource popularity: popular files are easy to download
+ - Trust: useful if we trust peers
+ - Rate of System Change: if system changes too frequently maybe not useful
+ - Rate of Content Change: not good for files that change regularly, all copies have to be updated
+ - Criticality: peers can leave independently, not urgent
+
+**Examples**
+
+ - ARPAnet: communication between universities working on ARPA projects, originally had peers
+ - Seti@Home: search for extra-terrestrial intelligence, relies on central server but peers do computation
+ - Napster: music sharing service, SPOF
+ - Gnutella: completely distributed, search floods overlay, node that has it responds
+     + Flooding for search was inefficient
+     + Needs IP address for at least 1 peer to join
+     + No verification of data
+ - BitTorrent: relies on torrent files to describe files
+     + Torrent file contains name, trackers, pieces, and checksums
+     + Prefers rare chunks, tit-for-tat scheme
+ - Skype: central contacts book server but communication is P2P
+
+**Distributed Hashtables**
+
+ - Hashtable distributed across computers
+ - Each computer knows hash function and has few buckets
+ - Elements can be inserted/retrieved but need to ask computer
+ - Chord: P2P system from MIT
+     + Arranged in a ring
+     + Each node knows previous and next
+     + To store/retrieve forward message until node with bucket
+     + If slot occupied store at next node
+     + A node needs to know at least one node to join
+     + Each node replicates all data to several nodes before and after
+     + $O(n)$ search algorithm
+ - Chord with fingertables
+     + Each node has links to $2^i + v mod n$
+     + $O(\log{n})$ search and storage
+
+**Magnet Links**
+
+ - Instead of a torrent file use a "link" to retrieve file info
+ - Can direct to tracker or DHT
+
+---
+
+
