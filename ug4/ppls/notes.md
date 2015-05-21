@@ -106,7 +106,7 @@
 - A receive will match send with matching communicator, tag, and source in order
 - Status info such as `s.MPI_SOURCE` and `s.MPI_TAG`
 
-Blocking
+Blocking:
 
 :   Returns only when it is safe to reuse the buffer. **Not** after a matching operation has been executed.
 
@@ -136,7 +136,7 @@ Blocking
 - `MPI_Scatter(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)` - i-th chunk of size `sendcount` from `sendbuf` is sent to `recvbuf`
 - `MPI_Allreduce(sendbuf, recvbuf, count, sendtype, op, comm)` - reduces `sendbuf` from all within `comm` point-wise into everyone's `recvbuf`
 
-### Communicator Splitting
+### Communicator Splitting:
 
 :   `MPI_Comm_split(old, colour, key, new)` - processors are split based on whether key == colour.
 
